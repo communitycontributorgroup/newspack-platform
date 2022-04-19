@@ -1,0 +1,82 @@
+
+/* Archive Shortcodes */
+/* ------------------ */
+
+.host-archive-list, .producer-archive-list, .episode-archive-list {
+	list-style: none;
+	padding-left: 0;
+}
+
+.host-archive-item, .producer-archive-item, .episode-archive-item {
+	list-style: none;
+	clear: both;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.host-archive-item-thumbnail, .producer-archive-item-thumbnail, .episode-archive-item-thumbnail {
+	float: left;
+	padding-right: 20px;
+}
+
+.host-archive-item-title, .producer-archive-item-title, .episode-archive-item-title {
+	font-size: 1.25em;
+	margin-bottom: 10px;
+}
+
+.host-archive-item-content, .producer-archive-item-content, .episode-archive-item-content,
+.host-archive-item-excerpt, .producer-archive-item-excerpt, .episode-archive-item-excerpt {
+	font-size: 0.8em;
+}
+
+.host-shows, .producer-shows, .episode-shows {
+	font-size: 0.85em;
+}
+
+.host-contacts, .host-social-icons, .producer-contacts, .producer-social-icons {
+	display: inline-block;
+}
+
+/* Archive Grid View */
+/* ----------------- */
+
+.host-archives.grid .host-archive-item, .producer-archives.grid .producer-archive-item,
+.episode-archives.grid .episode-archive-item {
+    display: inline-block;
+    vertical-align: top;
+    text-align: center;
+    width: 220px;
+}
+
+.host-archives.grid .host-archive-item-thumbnail, .producer-archives.grid .producer-archive-item-thumbnail,
+.episode.archives.grid .episode-archive-item-thumbnail {
+    float: none;
+}
+
+
+/* Show Subarchive Shortcodes */
+/* -------------------------- */
+
+.host-host, .host-producer {
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+.host-host-thumbnail, .host-host-info,
+.host-producer-thumbnail, .host-producer-info {
+	display: table-cell;
+	vertical-align: top;
+}
+
+.host-host-thumbnail, .host-producer-thumbnail {
+	padding-right: 30px;
+	margin-top: 10px;
+}
+
+.host-host-info, .host-producer-info {
+	max-width: 600px;
+}
+
+.host-host-title, .host-producer-title {
+	margin-bottom: 10px;
+}
