@@ -3,8 +3,8 @@ Contributors: tonyzeoli, majick
 Donate link: https://netmix.co/donate
 Tags: dj, music, playlist, radio, shows, scheduling, broadcasting
 Requires at least: 4.0
-Tested up to: 5.8.1
-Stable tag: 2.4.1.6
+Tested up to: 5.9.3
+Stable tag: 2.4.1.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,6 +12,15 @@ Radio Station Pro levels up your Radio Station plugin to the Professional level.
 
 
 == Changelog ==
+
+= 2.4.1.8 =
+* Update: Freemius SDK (2.4.3)
+* Added: Team archive shortcode [team-archive] and automatic page
+* Improved: Adjust Admin Menu item to say Radio Station Pro
+* Fixed: Plugin page links for Free and Pro versions
+* Fixed: Profile archives shortcode grid view default to no excerpt
+* Fixed: Check if multiple schedule switching setting is active
+* Added: filters for shift time separator in schedule views
 
 = 2.4.1.7 =
 * Added: Host and Producer archive list shortcodes

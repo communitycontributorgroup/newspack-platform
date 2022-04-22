@@ -152,8 +152,10 @@ function radio_station_pro_get_stream_metadata( $stream, $metadata, $key = false
 					echo 'Latest Playlist Track: ' . print_r( $latest, true ) . PHP_EOL;
 				}
 
-				// TODO: check for undefined indexes ?
-				$currentsong = radio_station_pro_metadata_current_song( '', $latest['playlist_entry_song'], $latest['playlist_entry_artist'], ' - ' );
+				// 2.4.1.8: add check to fix undefined indexes
+				$song = isset( $latest['playlist_entry_song'] ) ? $latest['playlist_entry_song'] : '';
+				$artist = isset( $latest['playlist_entry_artist'] ) ? $latest['playlist_entry_artist'] : '';
+				$currentsong = radio_station_pro_metadata_current_song( '', $song, $artist, ' - ' );
 				$np = array(
 					'currentsong' => $currentsong,
 					'type'        => 'playlist'
@@ -745,7 +747,8 @@ function radio_station_pro_shoutcast1_metadata( $stream, $metadata, $mount = fal
 
 	// --- maybe use metadata override ---
 	if ( !$metadata ) {
-		$metadata = stream;
+		// 2.4.1.8: fix to missing $ on variable causing constant error 
+		$metadata = $stream;
 	}
 
 	// --- get data ---
@@ -855,7 +858,8 @@ function radio_station_pro_shoutcast2_metadata( $stream, $metadata, $mount = fal
 
 	// --- maybe use metadata override ---
 	if ( !$metadata ) {
-		$metadata = stream;
+		// 2.4.1.8: fix to missing $ on variable causing constant error
+		$metadata = $stream;
 	}
 
 	// --- get data ---
@@ -1001,7 +1005,8 @@ function radio_station_pro_icecast_metadata_json( $stream, $metadata, $mount = n
 
 	// --- maybe use metadata override ---
 	if ( !$metadata ) {
-		$metadata = stream;
+		// 2.4.1.8: fix to missing $ on variable causing constant error 
+		$metadata = $stream;
 	}
 
 	// --- get metadata URL ---

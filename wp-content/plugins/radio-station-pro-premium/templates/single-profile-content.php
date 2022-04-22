@@ -572,12 +572,8 @@ echo '<input type="hidden" id="radio-page-type" value="' . esc_attr( $type ) . '
 					foreach ( $section_order as $section ) {
 						if ( isset( $sections[$section] ) ) {
 							$found_section = true;
-							if ( 0 == $i ) {
-								$class = "tab-active";
-							} else {
-								$class = "tab-inactive";
-							}
-							echo '<div id="' . esc_attr( $type ) . '-' . esc_attr( $section ) . '-tab" class="' . esc_attr( $type ) . '-tab ' . esc_attr( $class ) . '" onclick="radio_show_tab(\'' . esc_attr( $section ) . '\');">' . $newline;
+							$class = ( 0 == $i ) ? 'tab-active' : 'tab-inactive';
+							echo '<div id="' . esc_attr( $type ) . '-' . esc_attr( $section ) . '-tab" class="' . esc_attr( $type ) . '-tab ' . esc_attr( $class ) . '" onclick="radio_show_tab(\'' . esc_attr( $type ) . '\',\'' . esc_attr( $section ) . '\');">' . $newline;
 							echo esc_html( $sections[$section]['anchor'] );
 							echo '</div>' . $newline;
 							if ( ( $i + 1 ) < count( $sections ) ) {
@@ -657,13 +653,14 @@ echo '<!-- /#' . esc_attr( $type ) . '-content -->' . $newline;
 radio_station_enqueue_script( 'radio-station-page', array( 'radio-station' ), true );
 
 // --- maybe detect and switch to # tab ---
+// 2.4.0.6: add prefix argument to show_tab function
 if ( 'tabbed' == $section_layout ) {
 	$js = "setTimeout(function() {";
 	$js .= " if (window.location.hash) {";
 	$js .= "  hash = window.location.hash.substring(1);";
 	$js .= "  if (hash.indexOf('" . esc_js( $type ) . "-') > -1) {";
 	$js .= "   tab = hash.replace('" . esc_js( $type ) . "-', '');";
-	$js .= "   radio_show_tab(tab);";
+	$js .= "   radio_show_tab(" . esc_js( $type ) . ",tab);";
 	$js .= "  }";
 	$js .= " }";
 	$js .= "}, 500);";

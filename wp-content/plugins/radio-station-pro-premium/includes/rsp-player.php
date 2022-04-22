@@ -49,8 +49,11 @@ function radio_station_pro_player_scripts() {
 	$inline_handle = 'radio-player';
 	if ( ( 'yes' == $autoresume ) || ( 'yes' == $continuous ) ) {
 		$inline_handle = 'rsp-player';
-		$version = filemtime( RADIO_STATION_PRO_DIR . '/js/rsp-player.js' );
-		$pro_player_url = plugins_url( 'js/rsp-player.js', RADIO_STATION_PRO_FILE );
+		// 2.4.1.8: add check to handle Radio Station Pro/Radio Player Pro
+		$dir = defined( 'STREAM_PLAYER_PRO_DIR' ) ? STREAM_PLAYER_PRO_DIR : RADIO_STATION_PRO_DIR;
+		$file = defined( 'STREAM_PLAYER_PRO_FILE' ) ? STREAM_PLAYER_PRO_FILE : RADIO_STATION_PRO_FILE;
+		$version = filemtime( $dir . '/js/rsp-player.js' );
+		$pro_player_url = plugins_url( 'js/rsp-player.js', $file );
 		wp_enqueue_script( $inline_handle, $pro_player_url, array( 'radio-player' ), $version, true );
 	}
 

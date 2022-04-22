@@ -23,10 +23,15 @@ $start_time = radio_station_to_time( $start_date . ' 00:00:00' );
 $start_time = apply_filters( 'radio_station_schedule_start_time', $start_time, 'grid' );
 
 // --- set shift time formats ---
+// 2.4.0.6: add filter for shift times separator
+$shifts_separator = __( 'to', 'radio-station' );
+$shifts_separator = apply_filters( 'radio_station_schedule_show_time_separator', $shifts_separator, 'schedule-grid' );
+$time_separator = ':';
+$time_separator = apply_filters( 'radio_station_time_separator', $time_separator, 'schedule-grid' );
 if ( 24 == (int) $atts['time'] ) {
-	$start_data_format = $end_data_format = 'H:i';
+	$start_data_format = $end_data_format = 'H' . $time_separator . 'i';
 } else {
-	$start_data_format = $end_data_format = 'g:i a';
+	$start_data_format = $end_data_format = 'g' . $time_separator . 'i a';
 }
 $start_data_format = apply_filters( 'radio_station_time_format_start', $start_data_format, 'schedule-grid', $atts );
 $end_data_format = apply_filters( 'radio_station_time_format_end', $end_data_format, 'schedule-grid', $atts );
@@ -398,7 +403,7 @@ foreach ( $weekdays as $i => $weekday ) {
 					$end = radio_station_translate_time( $end );
 
 					$show_time = '<span class="rs-time rs-start-time" data="' . esc_attr( $shift_start_time ) . '" data-format="' . esc_attr( $start_data_format ) . '">' . esc_html( $start ) . '</span>' . $newline;
-					$show_time .= '<span class="rs-sep"> ' . esc_html( __( 'to', 'radio-station' ) ) . ' </span>' . $newline;
+					$show_time .= '<span class="rs-sep"> ' . esc_html( $shifts_separator ) . ' </span>' . $newline;
 					$show_time .= '<span class="rs-time rs-end-time" data="' . esc_attr( $shift_end_time ) . '" data-format="' . esc_attr( $end_data_format ) . '">' . esc_html( $end ) . '</span>' . $newline;
 
 				} else {
@@ -418,9 +423,10 @@ foreach ( $weekdays as $i => $weekday ) {
 				$times .= '>' . $show_time . '</div>' . $newline;
 
 				// --- show user times ---
+				// 2.4.1.8: use filtered shift times separator
 				$times .= '<div class="show-user-time" id="show-user-time-' . esc_attr( $tcount ) . '">' . $newline;
 				$times .= '[<span class="rs-time rs-start-time"></span>' . $newline;
-				$times .= '<span class="rs-sep"> ' . esc_html( __( 'to', 'radio-station' ) ) . ' </span>' . $newline;
+				$times .= '<span class="rs-sep"> ' . esc_html( $shifts_separator ) . ' </span>' . $newline;
 				$times .= '<span class="rs-time rs-end-time"></span>]' . $newline;
 				$times .= '</div>' . $newline;
 				$info['times'] = $times;

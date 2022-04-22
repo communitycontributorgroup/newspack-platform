@@ -34,13 +34,15 @@ function radio_station_pro_archive_list_shortcode( $post_type, $atts ) {
 	$time_format = radio_station_get_setting( 'clock_time_format' );
 
 	// --- merge defaults with passed attributes ---
+	// 2.4.1.8: change default view value to list
+	// 2.4.1.8: added generic include attribute
 	$defaults = array(
 		// --- shortcode display ----
 		'description'  => 'excerpt',
 		'hide_empty'   => 0,
 		'time'         => $time_format,
 		'thumbnails'   => 1,
-		'view'         => 0,
+		'view'         => 'list',
 		// --- query args ---
 		'orderby'      => 'title',
 		'order'        => 'ASC',
@@ -49,6 +51,7 @@ function radio_station_pro_archive_list_shortcode( $post_type, $atts ) {
 		'offset'       => 0,
 		'pagination'   => 1,
 		// --- specific posts ---
+		'include'      => 0,
 		'host'         => 0,
 		'producer'     => 0,
 		'episode'      => 0,
@@ -64,6 +67,11 @@ function radio_station_pro_archive_list_shortcode( $post_type, $atts ) {
 		'air_date'     => 1,
 		// TODO: add more episode meta...
 	);
+
+	// 2.4.1.8: change default description value for grid view
+	if ( isset( $atts['view'] ) && ( 'grid' == $atts['view'] ) ) {
+		$defaults['description'] = 'none';
+	}
 
 	// --- handle possible pagination offset ---
 	if ( isset( $atts['perpage'] ) && !isset( $atts['offset'] ) && get_query_var( 'page' ) ) {
@@ -87,12 +95,15 @@ function radio_station_pro_archive_list_shortcode( $post_type, $atts ) {
 	);
 
 	// --- extra queries for shows ---
+	// 2.4.1.8: add generic include attribute
 	if ( ( RADIO_STATION_HOST_SLUG == $post_type ) && isset( $atts['host'] ) && $atts['host'] ) {
 		$args['include'] = explode( ',', $atts['host'] );
 	} elseif ( ( RADIO_STATION_PRODUCER_SLUG == $post_type ) && isset( $atts['producer'] ) && $atts['producer'] ) {
 		$args['include'] = explode( ',', $atts['producer'] );
 	} elseif ( ( RADIO_STATION_EPISODE_SLUG == $post_type ) && isset( $atts['episode'] ) && $atts['episode'] ) {
 		$args['include'] = explode( ',', $atts['episode'] );
+	} elseif ( isset( $atts['include'] ) && $atts['include'] ) {
+		$args['include'] = explode( ',', $atts['include'] );
 	}
 
 	// --- get posts via query ---
@@ -106,10 +117,13 @@ function radio_station_pro_archive_list_shortcode( $post_type, $atts ) {
 	}
 
 	// --- set time data formats ---
+	// 2.4.1.8: added filter for default time format separator
+	$time_separator = ':';
+	$time_separator = apply_filters( 'radio_station_time_separator', $time_separator, $post_type . '-archive' );
 	if ( 24 == (int) $atts['time'] ) {
-		$start_data_format = $end_data_format = 'H:i';
+		$start_data_format = $end_data_format = 'H' . $times_separator . 'i';
 	} else {
-		$start_data_format = $end_data_format = 'g:i a';
+		$start_data_format = $end_data_format = 'g' . $times_separator . 'i a';
 	}
 	$start_data_format = 'j, ' . $start_data_format;
 	$start_data_format = apply_filters( 'radio_station_time_format_start', $start_data_format, $post_type . '-archive', $atts );
@@ -224,8 +238,7 @@ function radio_station_pro_archive_list_shortcode( $post_type, $atts ) {
 			$info['meta'] = apply_filters( 'radio_station_archive_shortcode_meta', '', $post_id, $post_type, $atts );
 
 			// --- description ---
-			// if ( 'none' == $atts['description'] ) {
-			if ( ( 'none' == $atts['description'] ) || ( 'grid' == $atts['view'] ) ) {
+			if ( 'none' == $atts['description'] ) {
 				$info['description'] = '';
 			} elseif ( 'full' == $atts['description'] ) {
 				$info['description'] = '<div class="' . esc_attr( $type ) . '-archive-item-content">';

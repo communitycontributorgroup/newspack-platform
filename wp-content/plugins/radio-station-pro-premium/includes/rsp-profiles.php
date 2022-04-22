@@ -21,6 +21,8 @@
 // - Get Profile Avatar
 // - Get Profile Avatar ID
 // - Add Profile Sections to Show Page
+// - Team Toggle Script
+// - Filter Show Page Section Order
 // === Shortcodes ===
 // - Show Hosts Archive Shortcode
 // - Show Producers Archive Shortcode
@@ -28,6 +30,7 @@
 // - Show Producer List Filter
 // - Host Archive Shortcode
 // - Producer Archive Shortcode
+// - Team Archive Shortcode
 // - Filter Archive Shortcode Meta
 
 
@@ -345,53 +348,202 @@ function radio_station_pro_show_profile_sections( $sections, $post_id ) {
 
 	// --- Host section ---
 	$hosts = get_post_meta( $post_id, 'show_user_list', true );
-	if ( $hosts ) {
+	if ( $hosts && is_array( $hosts ) ) {
 
 		$hosts_type = get_post_type_object( RADIO_STATION_HOST_SLUG );
 		$host_label = $hosts_type->labels->singular_name;
 		$hosts_label = $hosts_type->labels->name;
 		$sections['hosts']['heading'] = '<a name="' . esc_attr( $type ) . '-hosts">';
 		$label = $singular_label;
-		$anchor = ( is_array( $hosts ) && ( count( $hosts ) > 1 ) ) ? $hosts_label : $host_label;
+		$anchor = $hosts_title = ( count( $hosts ) > 1 ) ? $hosts_label : $host_label;
 		$label .= ' ' . $anchor;
 		$label = apply_filters( 'radio_station_' . $type . '_hosts_label', $label, $post_id );
-		$sections['hosts']['heading'] .= '<h3 id="' . esc_attr( $type ) . '-section-hosts">' . esc_html( $label ) . '</h3>' . $newline;
+		$sections['hosts']['heading'] .= '<h3 id="' . esc_attr( $type ) . '-hosts-title">' . esc_html( $label ) . '</h3>' . $newline;
 		$anchor = apply_filters( 'radio_station_' . $type . '_hosts_anchor', $anchor, $post_id );
 		$sections['hosts']['anchor'] = $anchor;
 
 		$radio_station_data[$type . '-hosts'] = $hosts;
-		$sections['hosts']['content'] = '<div id="' . esc_attr( $type ) . '-hosts" class="show-section-content"><br>' . $newline;
 		$shortcode = '[show-hosts-archive show="' . $post_id . '"]';
-		$shortcode = apply_filters( 'radio_station_' . $type . '_page_hosts_shortcode', $shortcode, $post_id );
-		$sections['hosts']['content'] .= do_shortcode( $shortcode );
-		$sections['hosts']['content'] .= '</div>' . $newline;
+		// TODO: grid view option for show hosts archive
+		$hosts_shortcode = apply_filters( 'radio_station_' . $type . '_page_hosts_shortcode', $shortcode, $post_id );
+		$sections['hosts']['content'] = do_shortcode( $hosts_shortcode );
 	}
 
 	// --- Producer section ---
 	$producers = get_post_meta( $post_id, 'show_producer_list', true );
-	if ( $producers ) {
+	if ( $producers && is_array( $producers ) ) {
 
 		$producers_type = get_post_type_object( RADIO_STATION_PRODUCER_SLUG );
 		$producer_label = $producers_type->labels->singular_name;
 		$producers_label = $producers_type->labels->name;
 		$sections['producers']['heading'] = '<a name="' . esc_attr( $type ) . '-producers">';
 		$label = $singular_label;
-		$anchor = ( is_array( $producers ) && ( count( $producers ) > 1 ) ) ? $producers_label : $producer_label;
+		$anchor = $producers_title = ( count( $producers ) > 1 ) ? $producers_label : $producer_label;
 		$label .= ' ' . $anchor;
 		$label = apply_filters( 'radio_station_' . $type . '_producers_label', $label, $post_id );
-		$sections['producers']['heading'] .= '<h3 id="' . esc_attr( $type ) . '-section-producers">' . esc_html( $label ) . '</h3>' . $newline;
+		$sections['producers']['heading'] .= '<h3 id="' . esc_attr( $type ) . '-producers-title">' . esc_html( $label ) . '</h3>' . $newline;
 		$anchor = apply_filters( 'radio_station_' . $type . '_producers_anchor', $anchor, $post_id );
 		$sections['producers']['anchor'] = $anchor;
 
 		$radio_station_data[$type . '-producers'] = $producers;
-		$sections['producers']['content'] = '<div id="' . esc_attr( $type ) . '-producers" class="show-section-content"><br>' . $newline;
 		$shortcode = '[show-producers-archive show="' . $post_id . '"]';
-		$shortcode = apply_filters( 'radio_station_' . $type . '_page_producers_shortcode', $shortcode, $post_id );
-		$sections['producers']['content'] .= do_shortcode( $shortcode );
-		$sections['producers']['content'] .= '</div>' . $newline;
+		// TODO: grid view option for show producers archive
+		$producers_shortcode = apply_filters( 'radio_station_' . $type . '_page_producers_shortcode', $shortcode, $post_id );
+		$sections['producers']['content'] = do_shortcode( $producers_shortcode );
+	}
+
+	// 2.4.1.8: allow for combined into team option
+	$team_tab = radio_station_get_setting( 'combined_team_tab' );
+	if ( $team_tab ) {
+	
+		$team_types = array();
+		$team_content = '';
+		
+		if ( $hosts && is_array( $hosts ) && ( count( $hosts ) > 0 ) ) {
+			$team_content .= '<div id="team-hosts" class="team-section">' . $newline;
+			if ( 'yes' == $team_tab ) {
+				$team_content .= '<div class="team-hosts-title">' . esc_html( $hosts_title ) . '</div>' . $newline;
+			}
+			if ( !strstr( $hosts_shortcode, ' view="grid"' ) ) {
+				$hosts_shortcode = str_replace( ']', ' view="grid"]', $hosts_shortcode );
+			}
+			$team_content .= do_shortcode( $hosts_shortcode );
+			$team_content .= '<br></div>' . $newline;
+			$team_types['hosts'] = $hosts_title;
+		}
+
+		if ( $producers && is_array( $producers ) && ( count( $producers ) > 0 ) ) {
+			$team_content .= '<div id="team-producers" class="team-section">' . $newline;
+			if ( 'yes' == $team_tab ) {
+				$team_content .= '<div class="team-producers-title">' . esc_html( $producers_title ) . '</div>' . $newline;
+			}
+			if ( !strstr( $producers_shortcode, ' view="grid"' ) ) {
+				$producers_shortcode = str_replace( ']', ' view="grid"]', $producers_shortcode );
+			}
+			$team_content .= do_shortcode( $producers_shortcode );
+			$team_content .= '<br></div>' . $newline;
+			$team_types['producers'] = $producers_title;
+		}
+		
+		// TODO: handle custom team member types
+
+		if ( count( $team_types ) > 0 ) {
+
+			$radio_station_data[$type . '-team'] = $team;
+			$sections['team']['heading'] = '<a name="' . esc_attr( $type ) . '-team">';
+			$label = $singular_label;
+			$anchor = __( 'Team', 'radio-station' );
+			$label .= ' ' . $anchor;
+			$label = apply_filters( 'radio_station_' . $type . '_team_label', $label, $post_id );
+			$sections['team']['heading'] .= '<h3 id="' . esc_attr( $type ) . '-team-title">' . esc_html( $label ) . '</h3>' . $newline;
+			$anchor = apply_filters( 'radio_station_' . $type . '_team_anchor', $anchor, $post_id );
+			$sections['team']['anchor'] = $anchor;
+			
+			// --- maybe prepend checkboxes to team content ---
+			if ( count( $team_types ) > 1 ) {
+
+				/* $checkboxes = '<div class="team-toggle-checkboxes">' . $newline;
+				foreach ( $team_types as $team_type => $label ) {
+					$checkboxes .= '<div class="team-toggle-checkbox">' . $newline;
+					$checkboxes .= '<input type="checkbox" id="team-checkbox-' . esc_attr( $team_type ). '" checked="checked" onclick="radio_team_check(\'' . esc_js( $team_type ) . '\',false);">' . $newline;
+					$checkboxes .= ' <a href="javascript:void(0);" onclick="radio_team_check(\'' . esc_js( $team_type ) . '\',true);">' . esc_html( $label ) . '</a>' . $newline;
+					$checkboxes .= '</div>' . $newline;
+				}
+				$checkboxes .= '</div><br>' . $newline;
+				$team_content = $checkboxes . $team_content; */
+				
+				$grid = ( 'yes' == $team_tab ) ? 'false' : 'true';
+				$select = '<div class="team-selection">' . $newline;
+				$select .= '<b>' . esc_html( __( 'View', 'radio-station' ) ) . '</b>: ';
+				$select .= '<select id="team-select" onchange="radio_team_select(' . esc_js( $grid ) . ');">' . $newline;
+				$select .= '<option value="all" selected="selected">' . esc_html( __( 'All', 'radio-station' ) ) . '</option>' . $newline;
+				foreach ( $team_types as $team_type => $label ) {
+					$select .= '<option value="' . esc_attr( $team_type ) . '">' . esc_html( $label ) . '</option>' . $newline;
+				}
+				$select .= '</select></div><br>' . $newline;
+				$team_content = $select . $team_content; 
+				
+				// --- add checkbox toggle script ---
+				add_action( 'wp_footer', 'radio_station_pro_team_select_script' );
+			}
+
+			// --- set team section content ---
+			$sections['team']['content'] = '<div id="' . esc_attr( $type ) . '-team" class="show-section-content"><br>' . $newline;
+			$sections['team']['content'] .= $team_content . '</div>' . $newline;
+		}
+	} else {
+		
+		// --- wrap host/producer content ---
+		// 2.4.1.8: moved out from section content
+		if ( isset( $sections['hosts']['content'] ) ) {
+			$sections['hosts']['content'] = '<div id="' . esc_attr( $type ) . '-hosts" class="show-section-content"><br>' . $sections['hosts']['content'] . '</div>' . $newline;
+		}
+		if ( isset( $sections['producers']['content'] ) ) {
+			$sections['producers']['content'] = '<div id="' . esc_attr( $type ) . '-producers" class="show-section-content"><br>' . $sections['producers']['content'] . '</div>' . $newline;
+		}
 	}
 
 	return $sections;
+}
+
+// ------------------
+// Team Toggle Script
+// ------------------
+function radio_station_pro_team_select_script() {
+	
+	/* $js = "function radio_team_check(team,check) {
+		checkbox = document.getElementById('team-checkbox-'+team);
+		if (checkbox.checked == '1') {
+			document.getElementById('team-'+team).style.display = 'none';
+			if (check) {checkbox.checked = '0';}
+		} else {
+			document.getElementById('team-'+team).style.display = '';
+			if (check) {checkbox.checked = '1';}
+		}
+	}"; */
+
+	$js = "function radio_team_select(grid) {
+		select = document.getElementById('team-select');
+		value = select.options[select.selectedIndex].value;
+		if (grid) {
+			/* TODO: hide individual grid items */
+		} else {
+			sections = document.getElementsByClassName('team-section');
+			if (value == 'all') {
+				for (i = 0; i < sections.length; i++) {sections[i].style.display = '';}
+			} else {
+				for (i = 0; i < sections.length; i++) {sections[i].style.display = 'none';}
+				document.getElementById('team-'+value).style.display = '';
+			}
+		}
+	}";
+	
+	echo "<script>" . $js . "</script>";
+}
+
+
+// ------------------------------
+// Filter Show Page Section Order
+// ------------------------------
+// 2.4.1.8: added for displaying combined team tab
+add_filter( 'radio_station_show_page_section_order', 'radio_station_pro_show_page_section_order', 10, 2 );
+function radio_station_pro_show_page_section_order( $section_order, $post_id ) {
+		
+	// 2.4.1.8: allow for combined into team option
+	$team_tab = radio_station_get_setting( 'combined_team_tab' );
+	if ( $team_tab ) {
+
+		// --- replace host and producer tabs with team tab ---
+		foreach ( $section_order as $i => $section ) {
+			if ( ( 'hosts' == $section ) || ( 'producers' == $section ) ) {
+				unset( $section_order[$i] );
+			}
+		}
+		$section_order = array_unique( $section_order );
+		$section_order[] = 'team';
+	}
+	
+	return $section_order;
 }
 
 
@@ -464,6 +616,134 @@ function radio_station_pro_producer_archive_list( $atts ) {
 	// 2.4.1.7: enqueue shortcode styles
 	radio_station_enqueue_style( 'shortcode' );
 	return radio_station_pro_archive_list_shortcode( RADIO_STATION_PRODUCER_SLUG, $atts );
+}
+
+// ----------------------
+// Team Archive Shortcode
+// ----------------------
+// 2.4.1.8: added team archive shortcode
+add_shortcode( 'team-archive', 'radio_station_pro_team_archives' );
+add_shortcode( 'teams-archive', 'radio_station_pro_team_archives' );
+function radio_station_pro_team_archives( $atts ) {
+
+	global $post;
+	$post_id = $post->ID;
+
+	// --- extract shortcode attributes ---
+	$shortcode_atts = $atts;
+	$defaults = array(
+		'display' => array( 'all' ),
+		'view'    => 'tabs',
+	);
+	$atts = shortcode_atts( $defaults, $atts, 'team-archive' );
+	// echo "Team Atts: " . print_r( $atts, true ) . '<br>' . PHP_EOL;
+
+	// --- check member types to display ---
+	if ( is_array( $atts['display'] ) ) {
+		$display = $atts['display'];
+	} elseif ( strstr( $atts['display'], ',' ) ) {
+		$display = explode( ',', $atts['display'] );
+		foreach ( $display as $i => $type ) {
+			$display[$i] = trim( $type );
+		}
+	} else {
+		$display = array( trim( $atts['display'] ) );
+	}
+
+	// --- set section anchors and content ---
+	$sections = array();
+	if ( in_array( 'all', $display ) || in_array( 'hosts', $display ) ) {		
+		$sections['hosts']['anchor'] = __( 'Hosts', 'radio-station' );
+		$sections['hosts']['content'] = '<div id="team-hosts" class="team-section-content"><br>' . PHP_EOL;
+		$sections['hosts']['content'] .= radio_station_pro_archive_list_shortcode( RADIO_STATION_HOST_SLUG, $shortcode_atts );
+		$sections['hosts']['content'] .= '</div>' . PHP_EOL;
+	}
+	if ( in_array( 'all', $display ) ||  in_array( 'producers', $display ) ) {
+		$sections['producers']['anchor'] = __( 'Producers', 'radio-station' );
+		$sections['producers']['content'] = '<div id="team-producers" class="team-section-content"><br>' . PHP_EOL;
+		$sections['producers']['content'] .= radio_station_pro_archive_list_shortcode( RADIO_STATION_PRODUCER_SLUG, $shortcode_atts );
+		$sections['producers']['content'] .= '</div>' . PHP_EOL;
+	}
+	
+	// TODO: and editors other custom team members
+	// if ( in_array( 'all', $display ) ||  in_array( 'editors', $display ) ) {
+		// $sections['editors']['anchor'] = __( 'Editors', 'radio-station' );
+		// $sections['editors']['content'] = '<div id="team-editors" class="team-section-content"><br>' . PHP_EOL;
+		// $sections['editors']['content'] = ...
+		// $sections['editors']['content'] .= '</div>' . PHP_EOL;
+	// }
+
+	$html = '<div id="team-content">' . PHP_EOL;
+	// $html .= '<input type="hidden" id="radio-page-type" value="team">' . PHP_EOL;
+
+	// --- filter sections and section order ---
+	$sections = apply_filters( 'radio_station_team_shortcode_sections', $sections, $post_id );
+	$section_order = array( 'hosts', 'producers', 'editors', 'custom' );
+	$section_order = apply_filters( 'radio_station_team_shortcode_section_order', $section_order, $post_id );
+
+	// --- Display Team Sections ---
+	if ( ( is_array( $sections ) && ( count( $sections ) > 0 ) )
+	     && is_array( $section_order ) && ( count( $section_order ) > 0 ) ) {
+
+		$html .= '<div class="team-tabs">' . PHP_EOL;
+
+		$i = 0;
+		$found_section = false;
+		foreach ( $section_order as $section ) {
+			if ( isset( $sections[$section] ) ) {
+				$found_section = true;
+				$class = ( 0 == $i ) ? 'tab-active' : 'tab-inactive';
+				// 2.4.1.8: added prefix argument to javascript function
+				$html .= '<div id="team-' . esc_attr( $section ) . '-tab" class="team-tab ' . esc_attr( $class ) . '" onclick="radio_show_tab(\'team\',\'' . esc_attr( $section ) . '\');">' . PHP_EOL;
+					$html .= esc_html( $sections[$section]['anchor'] ) . PHP_EOL;
+				$html .= '</div>' . PHP_EOL;
+				if ( ( $i + 1 ) < count( $sections ) ) {
+					$html .= '<div class="team-tab-spacer">&nbsp;</div>' . PHP_EOL;
+				}
+				$i++;
+			}
+		}
+		if ( $found_section ) {
+			$html .= '<div class="team-tab-spacer">&nbsp;</div>' . PHP_EOL;
+		}
+
+		$html .= '</div>' . PHP_EOL;
+
+		// --- team sections ---
+		$html .= '<div class="team-sections">' . PHP_EOL;
+		$i = 0;
+		foreach ( $section_order as $section ) {
+			if ( isset( $sections[$section] ) ) {
+
+				// --- add tab classes to section ---
+				$classes = array( 'team-section' );
+				if ( 0 == $i ) {
+					$classes[] = 'tab-active';
+				} else {
+					$classes[] = 'tab-inactive';
+				}
+				$class = implode( ' ', $classes );
+				$sections[$section]['content'] = str_replace( 'class="team-section-content"', 'class="' . esc_attr( $class ) . '"', $sections[$section]['content'] );
+
+				// --- section content ---
+				$html .= $sections[$section]['content'] . PHP_EOL;
+
+				$i ++;
+			}
+		}
+		$html .= '</div>' . PHP_EOL;
+
+	}
+	$html .= '</div>' . PHP_EOL;
+
+	$html .= '</div>' . PHP_EOL;
+
+	// --- enqueue styles and scripts ---
+	radio_station_enqueue_style( 'shortcode' );
+	radio_station_enqueue_style( 'profiles' );
+	radio_station_enqueue_script( 'radio-station-page', array( 'radio-station' ), true );
+
+	return $html;
 }
 
 // -----------------------------
@@ -555,4 +835,5 @@ function radio_station_pro_archive_meta_profiles( $html, $post_id, $post_type, $
 
 	return $html;
 }
+
 

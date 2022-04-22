@@ -742,6 +742,12 @@ function radio_station_pro_shows_slider_script() {
 add_filter( 'radio_station_automatic_schedule_atts', 'radio_station_pro_automatic_schedule_atts' );
 function radio_station_pro_automatic_schedule_atts( $atts ) {
 
+	// 2.4.1.8: fix to check schedule switching setting is enabled
+	$switching = radio_station_get_setting( 'schedule_switcher' );
+	if ( 'yes' != $switching ) {
+		return $atts;
+	}
+
 	// --- get available views setting ---
 	$views = radio_station_get_setting( 'schedule_views' );
 

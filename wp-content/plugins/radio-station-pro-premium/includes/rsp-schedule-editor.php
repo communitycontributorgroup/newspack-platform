@@ -316,10 +316,12 @@ function radio_station_pro_enqueue_login_scripts() {
 	}
 
 	// --- enqueue auth check script ---
+	// default interval is 3 minutes
+	$interval = 3 * MINUTE_IN_SECONDS;
 	wp_register_script( 'wp_auth_check', '/wp-includes/js/wp-auth-check' . $suffix . '.js' , array( 'heartbeat' ), false, 1 );
 	wp_localize_script( 'wp_auth_check', 'authcheckL10n', array(
 		'beforeunload' => __( 'Your session has expired. You can log in again from this page or go to the login page.' ),
-		'interval' => apply_filters( 'wp_auth_check_interval', 3 * MINUTE_IN_SECONDS ), // default interval is 3 minutes
+		'interval' => apply_filters( 'wp_auth_check_interval', $interval ), 
 	) );
 	wp_enqueue_script( 'wp_auth_check' );
 }

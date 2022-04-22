@@ -623,12 +623,9 @@ echo '<input type="hidden" id="radio-page-type" value="episode">' . $newline;
 					foreach ( $section_order as $section ) {
 						if ( isset( $sections[$section] ) ) {
 							$found_section = true;
-							if ( 0 == $i ) {
-								$class = "tab-active";
-							} else {
-								$class = "tab-inactive";
-							}
-							echo '<div id="episode-' . esc_attr( $section ) . '-tab" class="episode-tab ' . esc_attr( $class ) . '" onclick="radio_show_tab(\'' . esc_attr( $section ) . '\');">' . $newline;
+							$class = ( 0 == $i ) ? 'tab-active' : 'tab-inactive';
+							// 2.4.1.8: added prefix argument to javascript function
+							echo '<div id="episode-' . esc_attr( $section ) . '-tab" class="episode-tab ' . esc_attr( $class ) . '" onclick="radio_show_tab(\'episode\',\'' . esc_attr( $section ) . '\');">' . $newline;
 							echo esc_html( $sections[$section]['anchor'] );
 							echo '</div>' . $newline;
 							if ( ( $i + 1 ) < count( $sections ) ) {
@@ -714,7 +711,7 @@ if ( 'tabbed' == $section_layout ) {
 	$js .= "  hash = window.location.hash.substring(1);";
 	$js .= "  if (hash.indexOf('episode-') > -1) {";
 	$js .= "   tab = hash.replace('episode-', '');";
-	$js .= "   radio_show_tab(tab);";
+	$js .= "   radio_show_tab('episode',tab);";
 	$js .= "  }";
 	$js .= " }";
 	$js .= "}, 500);";
