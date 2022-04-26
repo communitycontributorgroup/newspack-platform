@@ -184,10 +184,20 @@ function radio_player_continuous_loader() {
 	}
 
 	/* copy show image/titles */
-	title = wintop.jQuery('#radio_container_'+cinstance+' .rp-show-title').html();
-	jQuery('#radio_container_'+instance+' .rp-show-title').html(title);
-	image = wintop.jQuery('#rp-show-image-'+cinstance).css('background-image');
-	jQuery('#rp-show-image-'+instance).addClass('rp-show-image').removeClass('no-image').css('background-image',image);
+	var show_title_link = wintop.jQuery('#radio_container_'+cinstance+' .rp-show-title').html();
+	var show_image_url = wintop.jQuery('#rp-show-image-'+cinstance).css('background-image');
+	var show_now_playing = wintop.jQuery('#radio_container_'+cinstance+' .rp-now-playing').html();
+	console.log('Current Show Title: '+show_title_link);
+	console.log('Current Show Image URL: '+show_image_url);
+	console.log('Current Now Playing: '+show_now_playing);
+	setTimeout(function() {
+		jQuery('#radio_container_'+instance+' .rp-show-title').html(show_title_link);
+		jQuery('#radio_container_'+instance+' #rp-show-image-'+instance).css('background-image',show_image_url).addClass('rp-show-image').removeClass('no-image');
+		jQuery('#radio_container_'+instance+' .rp-now-playing').html(show_now_playing);
+		console.log('Show Title: '+jQuery('#radio_container_'+instance+' .rp-show-title').html());
+		console.log('Show Image URL: '+jQuery('#radio_container_'+instance+' #rp-show-image-'+instance).css('background-image'));
+		console.log('Now Playing: '+jQuery('#radio_container_'+instance+' .rp-now-playing').html());
+	}, 1000);
 
 	detail = {instance: instance}
 	radio_player_custom_event('rp-continuous', detail);

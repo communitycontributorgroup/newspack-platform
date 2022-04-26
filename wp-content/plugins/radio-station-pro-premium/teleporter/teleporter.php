@@ -513,7 +513,7 @@ function teleporter_localize_settings() {
 // --------------------------
 // 1.0.2: added ignore class for comment reply links
 add_filter( 'teleporter_ignore_classes', 'teleporter_ignore_comment_reply_link_classes' );
-function teleporter_comment_reply_link_classes( $classes ) {
+function teleporter_ignore_comment_reply_link_classes( $classes ) {
 	if ( !is_array( $classes ) ) {
 		$classes = array();
 	}
