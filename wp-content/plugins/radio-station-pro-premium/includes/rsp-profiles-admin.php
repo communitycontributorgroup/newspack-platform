@@ -118,9 +118,11 @@ function radio_station_pro_profile_info_metabox() {
 
 	// --- setup data ---
 	global $post;
-	$post_id = 0;
-	if ( property_exists( $post, 'ID' ) ) {
+	// 2.4.0.9: fix for PHP8 cannot check property_exists of non-object
+	if ( $post && is_object( $post ) && property_exists( $post, 'ID' ) ) {
 		$post_id = $post->ID;
+	} else {
+		$post_id = 0;
 	}
 	$post_type = $post->post_type;
 	$type = str_replace( 'rs-', '', $post_type );
@@ -457,7 +459,8 @@ function radio_station_pro_profile_error_message( $messages ) {
 		return;
 	}
 	$profile_post_types = array( RADIO_STATION_HOST_SLUG, RADIO_STATION_PRODUCER_SLUG );
-	if ( !property_exists( $post, 'post_type' ) || !in_array( $post->post_type, $profile_post_types ) ) {
+	// 2.4.1.9: added check for post object for PHP8
+	if ( !is_object( $post ) || !property_exists( $post, 'post_type' ) || !in_array( $post->post_type, $profile_post_types ) ) {
 		return;
 	}
 	$error = get_post_meta( $post->ID, 'profile_id_error', true );

@@ -75,9 +75,11 @@ function radio_station_pro_add_show_episode_metabox() {
 function radio_station_pro_show_episode_metabox() {
 
 	global $post;
-	$post_id = 0;
-	if ( property_exists( $post, 'ID' ) ) {
+	// 2.4.1.9: fix for PHP8 cannot check property_exists of non-object
+	if ( $post && is_object( $post ) && property_exists( $post, 'ID' ) ) {
 		$post_id = $post->ID;
+	} else {
+		$post_id = 0;
 	}
 
 	// --- add nonce field for verification ---

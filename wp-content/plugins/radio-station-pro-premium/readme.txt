@@ -13,6 +13,9 @@ Radio Station Pro levels up your Radio Station plugin to the Professional level.
 
 == Changelog ==
 
+= 2.4.1.9 =
+* Update: Teleporter plugin (1.0.2)
+
 = 2.4.1.8 =
 * Update: Freemius SDK (2.4.3)
 * Added: Team archive shortcode [team-archive] and automatic page

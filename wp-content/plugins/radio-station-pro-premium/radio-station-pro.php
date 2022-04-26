@@ -5,7 +5,7 @@ Plugin Name: Radio Station Pro
 Plugin URI: https://radiostation.pro
 Description: Adds all Pro Features to the Radio Station Plugin
 Author: Tony Zeoli, Tony Hayes
-Version: 2.4.1.8
+Version: 2.4.1.8.1
 Requires at least: 4.0
 Text Domain: radio-station
 Domain Path: /languages
