@@ -102,13 +102,7 @@ document.addEventListener('rp-state-loaded', function() {
 		/* maybe clone current player classes */
 		wintop = radio_player_top_window();
 		if (wintop != window.self) {
-			if (typeof wintop.player_classes != 'undefined') {
-				classes = wintop.player_classes;
-				if (radio_player.debug) {console.log('Player Classes: '+classes);}
-				if (classes.length) {
-					for (i in classes) {jQuery('#radio-station-player-bar .radio-container').addClass(classes[i]);}
-				}
-			}
+			radio_player_set_bar_classes();
 			/* maybe clone volume width display */
 			if ((typeof wintop.current_radio != 'object') || (wintop.current_radio == null)) {return;}
 			if (!radio_player_is_current_playing()) {return;}
@@ -120,6 +114,16 @@ document.addEventListener('rp-state-loaded', function() {
 	}
 }, false);
 
+/* --- set player bar classes --- */
+function radio_player_set_bar_classes() {
+	if (typeof wintop.player_classes != 'undefined') {
+		classes = wintop.player_classes;
+		if (radio_player.debug) {console.log('Syncing Player Bar Classes: '+classes);}
+		if (classes.length) {
+			for (i in classes) {jQuery('#radio-station-player-bar .radio-container').addClass(classes[i]);}
+		}
+	}
+}
 
 /* === Top Window Helper === */
 
@@ -168,6 +172,9 @@ function radio_player_continuous_loader() {
 	if ((typeof wintop.current_radio != 'object') || (wintop.current_radio == null)) {return;}
 	if (!radio_player_is_current_playing()) {return;}
 	topradio = wintop.current_radio;
+	
+	/* get debug state from top window */
+	radio_player.debug = wintop.radio_player.debug;
 
 	/* copy top player states to default instance */
 	if (radio_player.debug) {console.log('Duplicating Current Radio Player States');}
@@ -184,19 +191,16 @@ function radio_player_continuous_loader() {
 	}
 
 	/* copy show image/titles */
-	var show_title_link = wintop.jQuery('#radio_container_'+cinstance+' .rp-show-title').html();
-	var show_image_url = wintop.jQuery('#rp-show-image-'+cinstance).css('background-image');
-	var show_now_playing = wintop.jQuery('#radio_container_'+cinstance+' .rp-now-playing').html();
-	console.log('Current Show Title: '+show_title_link);
-	console.log('Current Show Image URL: '+show_image_url);
-	console.log('Current Now Playing: '+show_now_playing);
 	setTimeout(function() {
-		jQuery('#radio_container_'+instance+' .rp-show-title').html(show_title_link);
-		jQuery('#radio_container_'+instance+' #rp-show-image-'+instance).css('background-image',show_image_url).addClass('rp-show-image').removeClass('no-image');
-		jQuery('#radio_container_'+instance+' .rp-now-playing').html(show_now_playing);
-		console.log('Show Title: '+jQuery('#radio_container_'+instance+' .rp-show-title').html());
-		console.log('Show Image URL: '+jQuery('#radio_container_'+instance+' #rp-show-image-'+instance).css('background-image'));
-		console.log('Now Playing: '+jQuery('#radio_container_'+instance+' .rp-now-playing').html());
+		wintop = radio_player_top_window();
+		if (typeof wintop.radio_data.metadata.show_title != 'undefined') {jQuery('#radio_container_'+instance+' .rp-show-title').html(wintop.radio_data.show_title);}
+		if (typeof wintop.radio_data.metadata.show_image_url != 'undefined') {jQuery('#radio_container_'+instance+' .rp-show-image').css('background-image',wintop.radio_data.metadata.show_image_url).removeClass('no-image');}
+		if (typeof wintop.radio_data.metadata.now_playing != 'undefined') {jQuery('#radio_container_'+instance+' .rp-now-playing').html(wintop.radio_data.metadata.now_playing);}
+		if (radio_player.debug) {
+			console.log('Show Title: '+jQuery('#radio_container_'+instance+' .rp-show-title').html());
+			console.log('Show Image URL: '+jQuery('#radio_container_'+instance+' .rp-show-image').css('background-image'));
+			console.log('Now Playing: '+jQuery('#radio_container_'+instance+' .rp-now-playing').html());
+		}
 	}, 1000);
 
 	detail = {instance: instance}
@@ -207,6 +211,7 @@ function radio_player_continuous_loader() {
 function radio_player_toggle_current(instance) {
 	/* TODO: maybe bug out if playing custom file/stream source ? */
 	wintop = radio_player_top_window();
+	done = false;
 	if ((typeof wintop.current_radio == 'object') && (wintop.current_radio != null)) {
 		topradio = wintop.current_radio; /* playing = topradio.playing; */
 		playing = radio_player_is_current_playing();
@@ -218,11 +223,12 @@ function radio_player_toggle_current(instance) {
 				if (radio_player.debug) {console.log('Pausing Same Window Top Player.');}
 				/* radio_data.data[instance] = radio_data.data[cinstance]; */
 				radio_player_pause_instance(cinstance);
+				done = true;
 			} /* else if (radio_data.data[instance] == radio_data.data[cinstance]) {
 				if (radio_player.debug) {console.log('(Re)Playing Same Window Top Player.');}
 				radio_player_play_instance(cinstance); return true;
 			} */ else {
-				console.log('Pausing Same Window Top Player and starting player.');
+				if (radio_player.debug) {console.log('Pausing Same Window Top Player and starting player.');}
 				radio_player_pause_instance(cinstance);
 			}
 		} else if (cwin != windowid) {
@@ -230,32 +236,35 @@ function radio_player_toggle_current(instance) {
 				if (radio_player.debug) {console.log('Pausing Different Window Top Player.');}
 				/* radio_data.data[instance] = wintop.radio_data.data[cinstance]; */
 				radio_player_broadcast_request(cwin, cinstance, 'pause', 0);
+				done = true;
 			} /* else if (radio_data.data[instance] == wintop.radio_data.data[cinstance]) {
 				if (radio_player.debug) {console.log('(Re)Playing Different Window Top Player.');}
 				radio_player_broadcast_request(cwin, cinstance, 'play', 0); return true;
 			} */ else {
 				if (radio_player.debug) {console.log('Pausing Different Window Top Player and starting player.');}
-				radio_player_broadcast_request(cwin, cinstance, 'pause', 0);
+				radio_player_broadcast_request(cwin, cinstance, 'pause', 0);			
 			}
 		}
+		/* TODO: ensure current window class matches playback state */
+		radio_player_set_bar_classes();
 	}
-	return false;
+	return done;
 }
 
 /* --- sync current player volume --- */
 function radio_player_sync_volume(instance, volume, mute) {
-	console.log('Sync Volume : Instance:'+instance+' : Volume:'+volume+' : Mute:'+mute);
+	if (radio_player.debug) {console.log('Sync Volume : Instance:'+instance+' : Volume:'+volume+' : Mute:'+mute);}
 	/* TODO: bug out if playing custom file/stream source ? */
 	wintop = radio_player_top_window();
 	if ((typeof wintop.current_radio == 'object') && (wintop.current_radio != null)) {
 		topradio = wintop.current_radio; cinstance = topradio.instance;
 		cwin = topradio.windowid; windowid = radio_player_window_guid();
 		if ((cwin == windowid) && (instance != cinstance)) {
-			console.log('Syncing Volume to Same Window Top Player');
+			if (radio_player.debug) {console.log('Syncing Volume to Same Window Top Player');}
 			if (volume !== null) {radio_player_change_volume(cinstance, volume);}
 			if (mute !== null) {radio_player_mute_unmute(cinstance, mute);}
 		} else if (cwin != windowid) {
-			console.log('Syncing Volume to Different Window Top Player');
+			if (radio_player.debug) {console.log('Syncing Volume to Different Window Top Player');}
 			if (volume !== null) {radio_player_broadcast_request(cwin, cinstance, 'volume', volume);}
 			if (mute !== null) {
 				if (mute) {mute = '1';} else {mute = '0';}
@@ -381,7 +390,7 @@ function radio_player_autoresume_check(instance) {
 	if (radio_player.settings.singular && (typeof sysend != 'undefined')) {
 		windowid = radio_player_window_guid();
 		message = 'Window '+windowid+' intends to autoresume playing.';
-		console.log(message);
+		if (radio_player.debug) {console.log(message);}
 		sysend.broadcast('radio-autoresume', {message: message});
 	}
 	radio_player.autoresumer = setInterval(function() {
@@ -402,7 +411,7 @@ function radio_player_autoresume_check(instance) {
 			        if (typeof source.start === 'undefined') {source.noteOn(0);} else {source.start(0);}
 			        if (typeof testContext.resume === 'function') {testContext.resume();}
 			        radio_player.autoresume.source = source;
-			        console.log('Test Audio Source Context Created');
+			        if (radio_player.debug) {console.log('Test Audio Source Context Created');}
 				} catch(e) {
 				   /* could not create audio context test */
 				   radio_player_remove_unlock_events();
@@ -434,7 +443,7 @@ function radio_player_autoresume_check(instance) {
 			/* start playing the auto resumed player */
 			/* TODO: maybe fade in playback ? */
 			if (radio_data.state.playing) {
-				console.log('Attempting to Autoresume Player Audio');
+				if (radio_player.debug) {console.log('Attempting to Autoresume Player Audio');}
 				clearInterval(radio_player.autoresumer);
 				instance = radio_player.autoresume.instance; station = radio_data.state.station;
 				if (station > 0) {jQuery('#radio_player_'+instance).attr('station-id', station);}
@@ -485,7 +494,7 @@ function radio_player_check_if_playing(message) {
 		if (playing) {
 			windowid = radio_player_window_guid();
 			message = 'Window '+windowid+' is Playing';
-			console.log(message);
+			if (radio_player.debug) {console.log(message);}
 			sysend.broadcast('radio-playing', {message: message});
 		}
 	}
@@ -494,10 +503,11 @@ function radio_player_check_if_playing(message) {
 /* --- cancel autoresume request if playing --- */
 function radio_player_cancel_autoresume(message) {
 	if ((typeof radio_player.settings.autoresume == 'undefined') || !radio_player.settings.autoresume) {return;}
-	console.log(message.message);
+	if (radio_player.debug) {console.log(message.message);}
 	if (radio_player.debug) {console.log('Autoresume of Player cancelled.');}
 	radio_player.autoresume.cancelled = true;
 }
+
 
 /* === Window Resize Fix === */
 
