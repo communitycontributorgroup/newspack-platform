@@ -10,7 +10,7 @@ Plugin Name: Radio Station
 Plugin URI: https://radiostation.pro/radio-station
 Description: Adds Show pages, DJ role, playlist and on-air programming functionality to your site.
 Author: Tony Zeoli, Tony Hayes
-Version: 2.4.0.8
+Version: 2.4.0.9
 Requires at least: 3.3.1
 Text Domain: radio-station
 Domain Path: /languages
@@ -428,7 +428,8 @@ function radio_station_deactivation() {
 add_filter( 'pre_set_site_transient_update_plugins', 'radio_station_transient_update_plugins', 999 );
 add_filter( 'site_transient_update_plugins', 'radio_station_transient_update_plugins', 999 );
 function radio_station_transient_update_plugins( $transient_data ) {
-	if ( property_exists( $transient_data, 'response' ) ) {
+	// 2.4.0.9: fix for PHP8 cannot check property_exists of non-object
+	if ( $transient_data && is_object( $transient_data ) && property_exists( $transient_data, 'response' ) ) {
 		$response = $transient_data->response;
 		if ( isset( $response[RADIO_STATION_BASENAME] ) ) {
 			if ( strstr( $response[RADIO_STATION_BASENAME]->url, 'freemius' ) ) {
