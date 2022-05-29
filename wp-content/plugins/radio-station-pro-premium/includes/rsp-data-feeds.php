@@ -316,31 +316,38 @@ function radio_station_pro_register_rest_routes() {
 	$hosts = apply_filters( 'radio_station_route_slug_hosts', 'hosts' );
 	$producers = apply_filters( 'radio_station_route_slug_producers', 'producers' );
 
+	// --- set default REST route args ---
+	// 2.4.1.9: fix for missing permission_callback argument (WP 5.5+)
+	$args = array(
+		'methods' => 'GET',
+		'permission_callback' => '__return_true',
+	);
+		
 	// --- Show Episodes Route ---
 	// default URL: /wp-json/radio/genres/
+	// 2.4.1.9: added filter for rest route args
 	if ( $episodes ) {
-		register_rest_route( $base, '/' . $episodes . '/', array(
-			'methods' => 'GET',
-			'callback' => 'radio_station_route_episodes',
-		) );
+		$args['callback'] = 'radio_station_route_episodes';
+		$args = apply_filters( 'radio_station_route_args_episodes', $args );
+		register_rest_route( $base, '/' . $episodes . '/', $args );
 	}
 
 	// --- Show Hosts Route ---
 	// default URL: /wp-json/radio/hosts/
+	// 2.4.1.9: added filter for rest route args
 	if ( $hosts ) {
-		register_rest_route( $base, '/' . $hosts .'/', array(
-			'methods' => 'GET',
-			'callback' => 'radio_station_route_hosts',
-		) );
+		$args['callback'] = 'radio_station_route_hosts';
+		$args = apply_filters( 'radio_station_route_args_hosts', $args );
+		register_rest_route( $base, '/' . $hosts . '/', $args );
 	}
 
 	// --- Show Producers Route ---
 	// default URL: /wp-json/radio/producers/
+	// 2.4.1.9: added filter for rest route args
 	if ( $producers ) {
-		register_rest_route( $base, '/' . $producers .'/', array(
-			'methods' => 'GET',
-			'callback' => 'radio_station_route_producers',
-		) );
+		$args['callback'] = 'radio_station_route_producers';
+		$args = apply_filters( 'radio_station_route_args_producers', $args );
+		register_rest_route( $base, '/' . $producers . '/', $args );
 	}
 
 }

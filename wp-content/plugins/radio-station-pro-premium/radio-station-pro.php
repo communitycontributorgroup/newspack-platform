@@ -5,7 +5,7 @@ Plugin Name: Radio Station Pro
 Plugin URI: https://radiostation.pro
 Description: Adds all Pro Features to the Radio Station Plugin
 Author: Tony Zeoli, Tony Hayes
-Version: 2.4.1.8.4
+Version: 2.4.1.9
 Requires at least: 4.0
 Text Domain: radio-station
 Domain Path: /languages
@@ -105,7 +105,7 @@ define( 'RADIO_STATION_PRO_NAME', __( 'Radio Station Pro', 'radio-station' ) );
 define( 'RADIO_STATION_PRO_FILE', __FILE__ );
 define( 'RADIO_STATION_PRO_DIR', dirname( __FILE__ ) );
 define( 'RADIO_STATION_PRO_BASENAME', plugin_basename( __FILE__ ) );
-define( 'RADIO_STATION_PRO_VERSION', '2.4.1.8' );
+define( 'RADIO_STATION_PRO_VERSION', '2.4.1.9' );
 define( 'RADIO_STATION_PRO_FREE_MINIMUM', '2.4.0.7' );
 define( 'RADIO_STATION_PRO_HOME_URL', 'https://radiostation.pro/' );
 define( 'RADIO_STATION_PRO_DOCS_URL', 'https://radiostation.pro/docs/pro/' );
@@ -889,7 +889,8 @@ function radio_station_pro_edit_profiles_check() {
 	$post_types = array( RADIO_STATION_HOST_SLUG, RADIO_STATION_PRODUCER_SLUG );
 	foreach ( $post_types as $post_type ) {
 		$profile = str_replace( 'rs-', '', $post_type );
-		if ( ( $pagenow == 'post-new.php' ) && ( $_GET['post_type'] == $post_type ) ) {
+		// 2.4.1.9: fix to undefined index warning for post type
+		if ( ( $pagenow == 'post-new.php' ) && isset( $_GET['post_type'] ) && ( $_GET['post_type'] == $post_type ) ) {
 			if ( current_user_can( 'edit_others_' . $profile . 's') ) {
 				return;
 			}

@@ -429,7 +429,8 @@ function radio_station_pro_show_profile_sections( $sections, $post_id ) {
 
 		if ( count( $team_types ) > 0 ) {
 
-			$radio_station_data[$type . '-team'] = $team;
+			// 2.4.1.9: commented out unused undefined team data
+			// $radio_station_data[$type . '-team'] = $team;
 			$sections['team']['heading'] = '<a name="' . esc_attr( $type ) . '-team">';
 			$label = $singular_label;
 			$anchor = __( 'Team', 'radio-station' );
