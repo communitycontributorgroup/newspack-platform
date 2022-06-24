@@ -4,7 +4,7 @@ Donate link: https://netmix.co/donate
 Tags: dj, music, playlist, radio, shows, scheduling, broadcasting
 Requires at least: 4.0
 Tested up to: 5.9.3
-Stable tag: 2.4.1.9
+Stable tag: 2.4.1.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,6 +12,9 @@ Radio Station Pro levels up your Radio Station plugin to the Professional level.
 
 
 == Changelog ==
+
+= 2.4.1.10 =
+* Fixed: disable metadata retrieval cycler when player is off
 
 = 2.4.1.9 =
 * Update: Teleporter plugin (1.0.2)

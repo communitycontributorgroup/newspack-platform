@@ -5,7 +5,7 @@ Plugin Name: Radio Station Pro
 Plugin URI: https://radiostation.pro
 Description: Adds all Pro Features to the Radio Station Plugin
 Author: Tony Zeoli, Tony Hayes
-Version: 2.4.1.9
+Version: 2.4.1.10
 Requires at least: 4.0
 Text Domain: radio-station
 Domain Path: /languages
@@ -105,7 +105,7 @@ define( 'RADIO_STATION_PRO_NAME', __( 'Radio Station Pro', 'radio-station' ) );
 define( 'RADIO_STATION_PRO_FILE', __FILE__ );
 define( 'RADIO_STATION_PRO_DIR', dirname( __FILE__ ) );
 define( 'RADIO_STATION_PRO_BASENAME', plugin_basename( __FILE__ ) );
-define( 'RADIO_STATION_PRO_VERSION', '2.4.1.9' );
+define( 'RADIO_STATION_PRO_VERSION', '2.4.1.10' );
 define( 'RADIO_STATION_PRO_FREE_MINIMUM', '2.4.0.7' );
 define( 'RADIO_STATION_PRO_HOME_URL', 'https://radiostation.pro/' );
 define( 'RADIO_STATION_PRO_DOCS_URL', 'https://radiostation.pro/docs/pro/' );

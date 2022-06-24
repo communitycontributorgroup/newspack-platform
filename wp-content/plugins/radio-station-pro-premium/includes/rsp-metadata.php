@@ -54,6 +54,12 @@
 add_action( 'wp_enqueue_scripts', 'radio_station_pro_metadata_script_settings', 13 );
 function radio_station_pro_metadata_script_settings() {
 
+	// --- check player bar position ---
+	$position = radio_station_get_setting( 'player_bar' );
+	if ( ( '' == $position ) || ( 'off' == $position ) ) {
+		return;
+	}
+
 	// --- enqueue metadata javascript ---
 	$dir = defined( 'STREAM_PLAYER_PRO_DIR' ) ? STREAM_PLAYER_PRO_DIR : RADIO_STATION_PRO_DIR;
 	$file = defined( 'STREAM_PLAYER_PRO_FILE' ) ? STREAM_PLAYER_PRO_FILE : RADIO_STATION_PRO_FILE;
@@ -61,43 +67,38 @@ function radio_station_pro_metadata_script_settings() {
 	$pro_metadata_url = plugins_url( 'js/rsp-metadata.js', $file );
 	wp_enqueue_script( 'rsp-metadata', $pro_metadata_url, array( 'radio-player' ), $version, true );
 
-	// --- check player bar position ---
-	$position = radio_station_get_setting( 'player_bar' );
-	if ( ( '' != $position ) && ( 'off' != $position ) ) {
+	$js = '';
 
-		$js = '';
-
-		// --- set metdata retrieval URL ---
-		$routes = radio_station_get_setting( 'enable_data_routes' );
-		if ( 'yes' == $routes ) {
-			$metadata_url = radio_station_get_route_url( 'broadcast' );
+	// --- set metdata retrieval URL ---
+	$routes = radio_station_get_setting( 'enable_data_routes' );
+	if ( 'yes' == $routes ) {
+		$metadata_url = radio_station_get_route_url( 'broadcast' );
+	} else {
+		$feeds = radio_station_get_setting( 'enable_data_routes' );
+		if ( 'yes' == $feeds ) {
+			$metadata_url = radio_station_get_feed_url( 'broadcast' );
 		} else {
-			$feeds = radio_station_get_setting( 'enable_data_routes' );
-			if ( 'yes' == $feeds ) {
-				$metadata_url = radio_station_get_feed_url( 'broadcast' );
-			} else {
-				$metadata_url = add_query_arg( 'action', 'radio_player_now_playing', admin_url( 'admin-ajax.php' ) );
-			}
+			$metadata_url = add_query_arg( 'action', 'radio_player_now_playing', admin_url( 'admin-ajax.php' ) );
 		}
-		$js .= "radio_player.settings.metadata_url = '" . esc_url( $metadata_url ) . "';" . PHP_EOL;
+	}
+	$js .= "radio_player.settings.metadata_url = '" . esc_url( $metadata_url ) . "';" . PHP_EOL;
 
- 		// 2.4.1.5: filter metadata cycle seconds
-		// 2.4.1.9: add metadata cycle time to settings object
- 		$metadata_cycle = 10;
- 		$metadata_cycle = apply_filters( 'radio_station_player_bar_metadata_cycle', $metadata_cycle );
-		$js .= "radio_player.settings.metadata_cycle = " . esc_js( $metadata_cycle * 1000 ) . ";" . PHP_EOL;
+	// 2.4.1.5: filter metadata cycle seconds
+	// 2.4.1.9: add metadata cycle time to settings object
+	$metadata_cycle = 10;
+	$metadata_cycle = apply_filters( 'radio_station_player_bar_metadata_cycle', $metadata_cycle );
+	$js .= "radio_player.settings.metadata_cycle = " . esc_js( $metadata_cycle * 1000 ) . ";" . PHP_EOL;
 
-		// 2.4.1.9: set empty metadata object
-		$js .= "radio_data.metadata = [];" . PHP_EOL;
+	// 2.4.1.9: set empty metadata object
+	$js .= "radio_data.metadata = [];" . PHP_EOL;
 
-		// --- start metadata cycler via playing event ---
-		// 2.4.1.9: moved to rsp-metadata.js
+	// --- start metadata cycler via playing event ---
+	// 2.4.1.9: moved to rsp-metadata.js
 
-		// --- filter and enqueue inline ---
-		$js = apply_filters( 'radio_station_pro_metadata_scripts', $js );
-		if ( '' != $js ) {
-			wp_add_inline_script( 'rsp-metadata', $js, 'before' );
-		}
+	// --- filter and enqueue inline ---
+	$js = apply_filters( 'radio_station_pro_metadata_scripts', $js );
+	if ( '' != $js ) {
+		wp_add_inline_script( 'rsp-metadata', $js, 'before' );
 	}
 }
 
