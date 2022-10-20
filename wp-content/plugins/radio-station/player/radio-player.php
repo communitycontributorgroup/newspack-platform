@@ -166,25 +166,26 @@
 // === Radio Player ===
 // --------------------
 
-// -------------
-// Player Output
-// -------------
+// -----------------
+// Get Player Output
+// -----------------
 // Accepts: $args (Array)
-// Array Key    | Accepts
-// 'script'	| 'amplitude' (default), 'jplayer', 'howler', // 'mediaelements'
-// 'layout'	| 'horizontal', 'vertical'
-// 'theme'      | 'light', 'dark'
-// 'buttons'	| 'circular', 'rounded', 'square'
-// 'skin'	| // (Media Elements: 'wordpress', 'minimal');
-// 'title'	| [String]: Player/Station Title - 0 for none
-// 'image'	| [URL]: Player/Station Image  (eg. Logo) - recommended size 256x256
-// 'volume'	| [Integer: 0 to 100]: Initial Player Volume - default: 77
-function radio_station_player_output( $args = array() ) {
+// Array Key | Accepts
+// 'script'  | 'amplitude' (default), 'jplayer', 'howler', // 'mediaelements'
+// 'layout'  | 'horizontal', 'vertical'
+// 'theme'   | 'light', 'dark'
+// 'buttons' | 'circular', 'rounded', 'square'
+// 'skin'    | // (Media Elements: 'wordpress', 'minimal');
+// 'title'   | [String]: Player/Station Title - 0 for none
+// 'image'   | [URL]: Player/Station Image  (eg. Logo) - recommended size 256x256
+// 'volume'  | [Integer: 0 to 100]: Initial Player Volume - default: 77
+// 2.5.0: added second echo argument with default to false
+function radio_station_player_output( $args = array(), $echo = false ) {
 
 	global $radio_player;
 
 	// --- maybe debug output arguments ---
-	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) {
+	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
 		echo '<span style="display:none;">Passed Radio Player Output Arguments: ';
 		echo print_r( $args, true ) . '</span>';
 	}
@@ -220,7 +221,7 @@ function radio_station_player_output( $args = array() ) {
 	$instance = 0;
 	if ( isset( $args['id'] ) && ( '' != $args['id'] ) ) {
 		$id = abs( intval( $args['id'] ) ) ;
-		if ( $instance > 0 ) {
+		if ( $instance > -1 ) {
 			$instance = $id; 
 		}
 	}		
@@ -230,8 +231,8 @@ function radio_station_player_output( $args = array() ) {
 		}
 	}
 	$radio_player['instances'][] = $instance;
-	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) {
-		echo '<span style="display:none;">Player Instance: ' . $instance . ' - Instances: ' . print_r( $radio_player['instances'], true ) . '</span>';
+	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
+		echo '<span style="display:none;">Player Instance: ' . esc_html( $instance ) . ' - Instances: ' . esc_html( print_r( $radio_player['instances'], true ) ) . '</span>';
 	}
 
 	// --- filter player output args ---
@@ -241,9 +242,8 @@ function radio_station_player_output( $args = array() ) {
 	}
 
 	// --- maybe debug output arguments ---
-	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) {
-		echo '<span style="display:none;">Parsed Radio Player Output Arguments: ';
-		echo print_r( $args, true ) . '</span>';
+	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
+		echo '<span style="display:none;">Parsed Radio Player Output Arguments: ' . esc_html( print_r( $args, true ) ) . '</span>';
 	}
 		
 	// --- set instanced container IDs ---
@@ -256,30 +256,38 @@ function radio_station_player_output( $args = array() ) {
 		$classes[] = 'default-player';
 	}
 	$class_list = implode( ' ', $classes );
-	$html['player_open'] = '<div id="' . esc_attr( $player_id ) . '" class="' . esc_attr( $class_list ) . '"></div>' . PHP_EOL;
+	$html['player_open'] = '<div id="' . esc_attr( $player_id ) . '" class="' . esc_attr( $class_list ) . '"></div>' . "\n";
 	
 	// --- set Player container ---
 	$classes = array( 'radio-container', 'rp-audio', 'rp-audio-stream' );
 	$classes[] = $args['layout'];
 	$classes[] = $args['theme'];
 	$classes[] = $args['buttons'];
+
+	// TODO: check volume controls display settings
+	// $classes[] = 'no-volume-controls';
+	
+	// 2.5.0: added filter for radio container class
+	if ( function_exists( 'apply_filters' ) ) {
+		$classes = apply_filters( 'radio_station_player_container_classes', $classes, $args, $instance );
+	}
 	$class_list = implode( ' ', $classes );
-	$html['player_open'] .= '<div id="' . esc_attr( $container_id ) . '" class="' . esc_attr( $class_list ) . '" role="application" aria-label="media player" data-href="' . esc_url( $args['url'] ) . '" data-format="' . esc_attr( $args['format'] ) . '" data-fallback="' . esc_url( $args['fallback'] ) . '" data-fformat="' . esc_attr( $args['fformat'] ) . '">' . PHP_EOL;
-	$html['player_open'] .= '	<div class="rp-type-single">' . PHP_EOL;
-    	$html['player_close'] = '</div></div>' . PHP_EOL;
+	$html['player_open'] .= '<div id="' . esc_attr( $container_id ) . '" class="' . esc_attr( $class_list ) . '" role="application" aria-label="media player" data-href="' . esc_url( $args['url'] ) . '" data-format="' . esc_attr( $args['format'] ) . '" data-fallback="' . esc_url( $args['fallback'] ) . '" data-fformat="' . esc_attr( $args['fformat'] ) . '">' . "\n";
+	$html['player_open'] .= '	<div class="rp-type-single">' . "\n";
+    $html['player_close'] = '</div></div>' . "\n";
 
 	// --- set interface wrapper ---
-	$html['interface_open'] = '<div class="rp-gui rp-interface">' . PHP_EOL;
-	$html['interface_close'] = '</div>' . PHP_EOL;
+	$html['interface_open'] = '<div class="rp-gui rp-interface">' . "\n";
+	$html['interface_close'] = '</div>' . "\n";
 
 	// --- Station Info ---
-	$html['station'] = '<div class="rp-station-info">' . PHP_EOL;
+	$html['station'] = '<div class="rp-station-info">' . "\n";
 
 		// --- station logo image ---
 		$image = '';
 		$classes = array( 'rp-station-image' );
 		if ( ( '0' != (string)$args['image'] ) && ( 0 !== $args['image'] ) && ( '' != $args['image'] ) ) {
-			$image = '<img id="rp-station-default-image-' . esc_attr( $instance ) . '" class="rp-station-default-image" src="' . esc_url( $args['image'] ) . '" width="100%" height="100%" border="0" aria-label="' . esc_attr( __( 'Station Logo Image' ) ) . '">' . PHP_EOL;
+			$image = '<img id="rp-station-default-image-' . esc_attr( $instance ) . '" class="rp-station-default-image" src="' . esc_url( $args['image'] ) . '" width="100%" height="100%" border="0" aria-label="' . esc_attr( __( 'Station Logo Image' ) ) . '">' . "\n";
 			if ( function_exists( 'apply_filters' ) ) {
 				// 2.4.0.3: fix atts to args in third filter argument
 				$image = apply_filters( 'radio_station_player_station_image_tag', $image, $args['image'], $args, $instance );
@@ -293,128 +301,133 @@ function radio_station_player_output( $args = array() ) {
 		}
 		$class_list = implode( ' ', $classes );
 		$html['station'] .= '	<div id="rp-station-image-' . esc_attr( $instance ) . '" class="' . esc_attr( $class_list ) . '">';
-		$html['station'] .= $image . '</div>' . PHP_EOL;
+		$html['station'] .= $image . '</div>' . "\n";
 
 		// --- station text display ---
-		$html['station'] .= '	<div class="rp-station-text">';
+		$html['station'] .= '	<div class="rp-station-text">' . "\n";
 
 			// --- station title ---
 			$station_text_html = '		<div class="rp-station-title" aria-label="' . esc_attr( __( 'Station Name' ) ) . '">';
 			if ( ( '0' != (string)$args['title'] ) && ( 0 !== $args['title'] ) && ( '' != $args['title'] ) ) {
 				$station_text_html .= esc_html( $args['title'] );
 			}
-			$station_text_html .= '		</div>' . PHP_EOL;
+			$station_text_html .= '		</div>' . "\n";
 
 			// --- station timezone / location / frequency ---
-			// TODO: add timezone and/or frequency display ?
-			$station_text_html .= '		<div class="rp-station-timezone"></div>' . PHP_EOL;
-			$station_text_html .= '		<div class="rp-station-frequency"></div>' . PHP_EOL;
+			// 2.5.0: add filters for timezone / frequency / location display
+			// TODO: add timezone / frequency / location attributes ?
+			$timezone_display = isset( $args['timezone'] ) ? $args['timezone'] : '';
+			$timezone_display = apply_filters( 'radio_player_timezone_display', $timezone_display, $args, $instance );
+			$station_text_html .= '<div class="rp-station-timezone">' . esc_html( $timezone_display ) . '</div>' . "\n";
+
+			$frequency_display = isset( $args['frequency'] ) ? $args['frequency'] : '';
+			$frequency_display = apply_filters( 'radio_player_frequency_display', $frequency_display, $args, $instance );
+			$station_text_html .= '<div class="rp-station-frequency"></div>' . "\n";
+
+			// 2.5.0: fix to mismatched location variable and class
+			$location_display = isset( $args['location'] ) ? $args['location'] : '';
+			$location_display = apply_filters( 'radio_player_location_display', $location_display, $args, $instance );
+			$station_text_html .= '<div class="rp-station-location"></div>' . "\n";
 			
 			$html['station'] .= $station_text_html;
 
-		$html['station'] .= '	</div>' . PHP_EOL;
+		$html['station'] .= '	</div>' . "\n";
 
-	$html['station'] .= '</div>' . PHP_EOL;
+	$html['station'] .= '</div>' . "\n";
 
 	// --- Stream Play/Pause Control ---
-	$html['controls'] = '<div class="rp-controls-holder">' . PHP_EOL;
-	$html['controls'] .= '	<div class="rp-controls">' . PHP_EOL;
-	$html['controls'] .= '		<div class="rp-play-pause-button-bg">' . PHP_EOL;
-	$html['controls'] .= '			<div class="rp-play-pause-button" role="button" aria-label="' . esc_attr( __( 'Play Radio Stream' ) ) . '"></div>' . PHP_EOL;
-	$html['controls'] .= '		</div>' . PHP_EOL;
-	// $html['controls'] .= '		<button class="rp-stop" role="button" tabindex="0">' . esc_html( __( 'Stop', 'radio-player' ) ) . '</button>' . PHP_EOL;
-	$html['controls'] .= '	</div>' . PHP_EOL;
-	$html['controls'] .= '</div>' . PHP_EOL;
+	$html['controls'] = '<div class="rp-controls-holder">' . "\n";
+		$html['controls'] .= '<div class="rp-controls">' . "\n";
+			$html['controls'] .= '<div class="rp-play-pause-button-bg">' . "\n";
+				$html['controls'] .= '<div class="rp-play-pause-button" role="button" aria-label="' . esc_attr( __( 'Play Radio Stream' ) ) . '"></div>' . "\n";
+			$html['controls'] .= '</div>' . "\n";
+			// $html['controls'] .= '		<button class="rp-stop" role="button" tabindex="0">' . esc_html( __( 'Stop', 'radio-player' ) ) . '</button>' . "\n";
+		$html['controls'] .= '	</div>' . "\n";
+	$html['controls'] .= '</div>' . "\n";
 
 	// --- Volume Controls ---
-	$html['volume'] = '<div class="rp-volume-controls">' . PHP_EOL;
+	$html['volume'] = '<div class="rp-volume-controls">' . "\n";
 
 		// --- Volume Mute ---
-		// amplitude-mute
-		$html['volume'] .= '	<button class="rp-mute" role="button" tabindex="0">' . esc_html( __( 'Mute', 'radio-player' ) ) . '</button>' . PHP_EOL;
+		$html['volume'] .= '<button class="rp-mute" role="button" tabindex="0">' . esc_html( __( 'Mute', 'radio-player' ) ) . '</button>' . "\n";
 
 		// --- Volume Decrease ---
-		$html['volume'] .= '	<button class="rp-volume-down" role="button" area-label="' . esc_attr( __( 'Volume Down' ) ) . '">-</button>' . PHP_EOL;
+		// 2.5.0: fix to attribute typo area-label
+		$html['volume'] .= '<button class="rp-volume-down" role="button" aria-label="' . esc_attr( __( 'Volume Down' ) ) . '">-</button>' . "\n";
 
 		// --- Custom Range volume slider ---
-		$html['volume'] .= '	<div class="rp-volume-slider-container">' . PHP_EOL;
-		$html['volume'] .= '		<div class="rp-volume-slider-bg" style="width: 0; border: none;"></div>' . PHP_EOL;
-		$html['volume'] .= '		<input type="range" class="rp-volume-slider" value="' . esc_attr( $args['volume'] ) . '" max="100" min="0" aria-label="' . esc_attr( __( 'Volume Slider' ) ) . '">' . PHP_EOL;
-		$html['volume'] .= '		<div class="rp-volume-thumb"></div>' . PHP_EOL;
-		$html['volume'] .= '	</div>' . PHP_EOL;
-
-		// --- jPlayer/Howler volume bar slider ---
-		// $html['volume'] .= '	<div class="rp-volume-bar volume-bar"';
-		// $html['volume'] .= '>' . PHP_EOL;
-		// $html['volume'] .= '		<div class="rp-volume-bar-value"></div>' . PHP_EOL;
-		// $html['volume'] .= '	</div>' . PHP_EOL;
+		$html['volume'] .= '<div class="rp-volume-slider-container">' . "\n";
+			$html['volume'] .= '<div class="rp-volume-slider-bg" style="width: 0; border: none;"></div>' . "\n";
+				$html['volume'] .= '<input type="range" class="rp-volume-slider" value="' . esc_attr( $args['volume'] ) . '" max="100" min="0" aria-label="' . esc_attr( __( 'Volume Slider' ) ) . '">' . "\n";
+			$html['volume'] .= '<div class="rp-volume-thumb"></div>' . "\n";
+		$html['volume'] .= '</div>' . "\n";
 
 		// --- Volume Increase ---
-		$html['volume'] .= '	<button class="rp-volume-up" role="button" aria-label="' . esc_attr( __( 'Volume Up' ) ) . '">+</button>' . PHP_EOL;
+		$html['volume'] .= '<button class="rp-volume-up" role="button" aria-label="' . esc_attr( __( 'Volume Up' ) ) . '">+</button>' . "\n";
 
 		// --- Volume Max ---
-		$html['volume'] .= '	<button class="rp-volume-max" role="button" tabindex="0">' . esc_html( __( 'Max', 'radio-player' ) ) . '</button>' . PHP_EOL;
+		$html['volume'] .= '<button class="rp-volume-max" role="button" tabindex="0">' . esc_html( __( 'Max', 'radio-player' ) ) . '</button>' . "\n";
 
-	$html['volume'] .= '</div>' . PHP_EOL;
+	$html['volume'] .= '</div>' . "\n";
 
 	// --- dropdown script switcher for testing ---
-	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) {
-		$html['switcher'] = '<div class="rp-script-switcher">' . PHP_EOL;
+	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
+		$html['switcher'] = '<div class="rp-script-switcher">' . "\n";
 			$html['switcher'] .= '<div class="rp-show-switcher" onclick="radio_player_show_switcher(' . esc_js( $instance ) . ');">*</div>';
-			$html['switcher'] .= '<select class="rp-script-select" name="rp-script-select" style="display:none;">' . PHP_EOL;
+			$html['switcher'] .= '<select class="rp-script-select" name="rp-script-select" style="display:none;">' . "\n";
 			$scripts = array( 'amplitude' => 'Amplitude', 'jplayer' => 'jPlayer', 'howler' => 'Howler' );
 			foreach ( $scripts as $script => $label ) {
 				$html['switcher'] .= '<option value="' . esc_attr( $script ) . '"';
 				if ( $script == $args['script'] ) {
 					$html['switcher'] .= ' selected="selected"';
 				}
-				$html['switcher'] .= '>' . esc_html( $label ) . '</option>' . PHP_EOL;
+				$html['switcher'] .= '>' . esc_html( $label ) . '</option>' . "\n";
 			}
-			$html['switcher'] .= '</select>' . PHP_EOL;
-		$html['switcher'] .= '</div>' . PHP_EOL;
+			$html['switcher'] .= '</select>' . "\n";
+		$html['switcher'] .= '</div>' . "\n";
 	}
 
 	// --- Current Show Texts ---
 	// TODO: add other show info divs ( with expander ) ?
-	$show_text_html = '<div class="rp-show-text">' . PHP_EOL;
-	$show_text_html .= '	<div class="rp-show-title" aria-label="' . esc_attr( __( 'Show Title', 'radio-player' ) ) . '"></div>' . PHP_EOL;
-	$show_text_html .= '	<div class="rp-show-hosts"></div>' . PHP_EOL;
-	$show_text_html .= '	<div class="rp-show-producers"></div>' . PHP_EOL;
-	$show_text_html .= '	<div class="rp-show-shift"></div>' . PHP_EOL;
-	$show_text_html .= '	<div class="rp-show-remaining"></div>' . PHP_EOL;
-	$show_text_html .= '</div>' . PHP_EOL;
-	$show_text_html .= '<div id="rp-show-image-' . esc_attr( $instance ) . '" class="rp-show-image no-image" aria-label="' . esc_attr( __( 'Show Logo Image', 'radio-player' ) ) . '"></div>' . PHP_EOL;
+	$show_text_html = '<div class="rp-show-text">' . "\n";
+		$show_text_html .= '<div class="rp-show-title" aria-label="' . esc_attr( __( 'Show Title', 'radio-player' ) ) . '"></div>' . "\n";
+		$show_text_html .= '<div class="rp-show-hosts"></div>' . "\n";
+		$show_text_html .= '<div class="rp-show-producers"></div>' . "\n";
+		$show_text_html .= '<div class="rp-show-shift"></div>' . "\n";
+		$show_text_html .= '<div class="rp-show-remaining"></div>' . "\n";
+	$show_text_html .= '</div>' . "\n";
+	$show_text_html .= '<div id="rp-show-image-' . esc_attr( $instance ) . '" class="rp-show-image no-image" aria-label="' . esc_attr( __( 'Show Logo Image', 'radio-player' ) ) . '"></div>' . "\n";
 
-	$html['show'] = '<div class="rp-show-info">' . PHP_EOL;
-	$html['show'] .= $show_text_html;
-	$html['show'] .= '	</div>' . PHP_EOL;
+	$html['show'] = '<div class="rp-show-info">' . "\n";
+		$html['show'] .= $show_text_html;
+	$html['show'] .= '	</div>' . "\n";
 
-	// --- Progress Bar ---
+	// --- Playback Progress Bar ---
 	// (for files - not implemented yet)
-	/* $html['progress'] = '<div class="rp-progress">';
-	$html['progress'] .= '	<div class="rp-seek-bar">';
-	$html['progress'] .= '		<div class="rp-play-bar"></div>';
-	$html['progress'] .= '	</div>';
-	$html['progress'] .= '</div>';
-	$html['progress'] .= '<div class="rp-current-time" role="timer" aria-label="time">&nbsp;</div>' . PHP_EOL;
-	$html['progress'] .= '<div class="rp-duration" role="timer" aria-label="duration">&nbsp;</div>' . PHP_EOL;
-	$html['progress'] .= '<div class="rp-toggles">';
-	$html['progress'] .= '	<button class="rp-repeat" role="button" tabindex="0">Repeat</button>';
-	$html['progress'] .= '	<button class="rp-shuffle" role="button" tabindex="0">Shuffle</button>';
-	$html['progress'] .= '</div>' . PHP_EOL; */
+	/* $html['progress'] = '<div class="rp-progress">' . "\n";
+		$html['progress'] .= '<div class="rp-seek-bar">' . "\n";
+			$html['progress'] .= '<div class="rp-play-bar"></div>' . "\n";
+		$html['progress'] .= '</div>' . "\n";
+	$html['progress'] .= '</div>' . "\n";
+	$html['progress'] .= '<div class="rp-current-time" role="timer" aria-label="time">&nbsp;</div>' . "\n";
+	$html['progress'] .= '<div class="rp-duration" role="timer" aria-label="duration">&nbsp;</div>' . "\n";
+	$html['progress'] .= '<div class="rp-toggles">' . "\n";
+	$html['progress'] .= '	<button class="rp-repeat" role="button" tabindex="0">Repeat</button>' . "\n";
+	$html['progress'] .= '	<button class="rp-shuffle" role="button" tabindex="0">Shuffle</button>' . "\n";
+	$html['progress'] .= '</div>' . "\n"; */
 
 	// --- no solution section ---
-	// $html['no-solution'] = '<div class="rp-no-solution">' . PHP_EOL;
-	// $html['no-solution'] .= '<span>' . esc_html( __( 'Update Required' ) ) . '</span>' . PHP_EOL;
-	// $html['no-solution'] .= 'To play the media you will need to either update your browser to a recent version or update your <a href="https://get.adobe.com/flashplayer/" target="_blank">Flash plugin</a>.' . PHP_EOL;
-	// $html['no-solution'] .= '</div>' . PHP_EOL;
+	// $html['no-solution'] = '<div class="rp-no-solution">' . "\n";
+	// $html['no-solution'] .= '<span>' . esc_html( __( 'Update Required' ) ) . '</span>' . "\n";
+	// $html['no-solution'] .= 'To play the media you will need to either update your browser to a recent version or update your <a href="https://get.adobe.com/flashplayer/" target="_blank">Flash plugin</a>.' . "\n";
+	// $html['no-solution'] .= '</div>' . "\n";
 
 	// --- Current Track ---
-	$html['track'] = '<div class="rp-now-playing">' . PHP_EOL;
-	$html['track'] .= '	<div class="rp-now-playing-item rp-now-playing-title"></div>' . PHP_EOL;
-	$html['track'] .= '	<div class="rp-now-playing-item rp-now-playing-artist"></div>' . PHP_EOL;
-	$html['track'] .= '	<div class="rp-now-playing-item rp-now-playing-album"></div>' . PHP_EOL;
-	$html['track'] .= '</div>' . PHP_EOL;
+	$html['track'] = '<div class="rp-now-playing">' . "\n";
+		$html['track'] .= '<div class="rp-now-playing-item rp-now-playing-title"></div>' . "\n";
+		$html['track'] .= '<div class="rp-now-playing-item rp-now-playing-artist"></div>' . "\n";
+		$html['track'] .= '<div class="rp-now-playing-item rp-now-playing-album"></div>' . "\n";
+	$html['track'] .= '</div>' . "\n";
 
 	// --- set section order ---
 	$section_order = array( 'station', 'interface', 'show' );
@@ -447,24 +460,25 @@ function radio_station_player_output( $args = array() ) {
 		$control_order = apply_filters( 'radio_station_player_control_order', $control_order, $args, $instance );
 	}
 
-	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) {
-		echo '<!-- Section Order: ' . print_r( $section_order, true ) . ' -->';
-		echo '<!-- Control Order: ' . print_r( $control_order, true ) . ' -->';
+	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
+		echo '<span style="display:none;">Section Order: ' . esc_html( print_r( $section_order, true ) ) . '</span>' ."\n";
+		echo '<span style="display:none;">' . esc_html( print_r( $control_order, true ) ) . '</span>' . "\n";
 	}
 
 	// --- set alternative text sections ---
 	// 2.4.0.2: added for alternative display methods
 	// 2.4.0.3: added missing function_exists wrappers
-	$station_text_alt = '<div class="rp-station-text-alt">' . $station_text_html . '</div>' . PHP_EOL;
+	$station_text_alt = '<div class="rp-station-text-alt">' . $station_text_html . '</div>' . "\n";
 	if ( function_exists( 'apply_filters' ) ) {
 		$station_text_alt = apply_filters( 'radio_station_player_station_text_alt', $station_text_alt, $args, $instance );
 	}
-	$show_text_alt = '<div class="rp-station-text-alt">' . $show_text_html . '</div>' . PHP_EOL;
+	$show_text_alt = '<div class="rp-station-text-alt">' . $show_text_html . '</div>' . "\n";
 	if ( function_exists( 'apply_filters' ) ) {
 		$show_text_alt = apply_filters( 'radio_station_player_show_text_alt', $show_text_alt, $args, $instance );
 	}
 
-	// --- create player from sections ---
+	// --- create player from html sections ---
+	$html = apply_filters( 'radio_station_player_section_html', $html, $args, $instance );
 	$player = $html['player_open'];
 	foreach ( $section_order as $section ) {
 		if ( 'interface' == $section ) {
@@ -514,9 +528,9 @@ function radio_station_player_shortcode( $atts ) {
 	}
 
 	// --- maybe debug shortcode attributes --
-	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) {
+	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
 		echo '<span style="display:none;">Passed Radio Player Shortcode Attributes: ';
-		echo print_r( $atts, true ) . '</span>';
+		echo esc_html( print_r( $atts, true ) ) . '</span>';
 	}
 
 	// --- set base defaults ---
@@ -593,6 +607,7 @@ function radio_station_player_shortcode( $atts ) {
 
 	// --- set default atts ---
 	// 2.4.0.1: add player ID attribute
+	// 2.5.0: added block and popup attribute
 	$defaults = array(
 		'url'       => '',
 		'format'    => '',
@@ -609,11 +624,13 @@ function radio_station_player_shortcode( $atts ) {
 		'default'   => false,
 		'widget'    => 0,
 		'id'        => '',
+		'block'     => 0,
+		'popup'     => 0,
 	);
 
-	// --- unset attribites set to default ---
+	// --- unset any attributes set to default ---
 	foreach ( $atts as $key => $value ) {
-		if ( 'default' == $value ) {
+		if ( 'default' === $value ) {
 			unset( $atts[$key] );
 		}
 	}
@@ -635,9 +652,8 @@ function radio_station_player_shortcode( $atts ) {
 	}
 
 	// --- maybe debug shortcode attributes --
-	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) {
-		echo '<span style="display:none;">Combined Radio Player Shortcode Attributes: ';
-		echo print_r( $atts, true ) . '</span>';
+	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
+		echo '<span style="display:none;">Combined Radio Player Shortcode Attributes: ' . esc_html( print_r( $atts, true ) ) . '</span>' . "\n";
 	}
 
 	// --- maybe get station title ---
@@ -680,8 +696,8 @@ function radio_station_player_shortcode( $atts ) {
 	}
 
 	// DEV TEMP: allow default script override via querystring
-	// if ( isset( $_REQUEST['script'] ) && in_array( $_REQUEST['script'], $scripts ) ) {
-	//	$atts['script'] = $_REQUEST['script'];
+	// if ( isset( $_REQUEST['script'] ) && in_array( sanitize_text_field( $_REQUEST['script'], $scripts ) ) ) {
+	//	$atts['script'] = sanitize_text_field( $_REQUEST['script'] );
 	// }
 
 	// --- check script override constant ---
@@ -703,13 +719,12 @@ function radio_station_player_shortcode( $atts ) {
 
 		// --- maybe open shortcode wrapper ---
 		if ( !$atts['widget'] ) {
-			$player .= '<div class="radio-player-shortcode">' . PHP_EOL;
+			$player .= '<div class="radio-player-shortcode">' . "\n";
 		}
 
 		// --- maybe debug shortcode attributes --
-		if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) {
-			echo '<span style="display:none;">Parsed Radio Player Shortcode Attributes: ';
-			echo print_r( $atts, true ) . '</span>';
+		if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
+			echo '<span style="display:none;">Parsed Radio Player Shortcode Attributes: ' . esc_html( print_r( $atts, true ) ) . '</span>';
 		}
 
 		// --- get player HTML ---
@@ -717,7 +732,7 @@ function radio_station_player_shortcode( $atts ) {
 
 		// -- maybe close shortcode wrapper ---
 		if ( !$atts['widget'] ) {
-			$player .= '</div>' . PHP_EOL;
+			$player .= '</div>' . "\n";
 		}
 	}
 
@@ -746,33 +761,75 @@ function radio_station_player_ajax() {
 
 	// --- sanitize shortcode attributes ---
 	$atts = radio_station_player_sanitize_shortcode_values();
-	if ( defined( 'RADIO_PLAYER_DEBUG' ) && RADIO_PLAYER_DEBUG ) {
-		echo '<span style="display:none;">';
-		echo 'Radio Player Shortcode Attributes: ' . print_r( $atts, true );
-		echo '</span>';
-	}
+	// 2.5.0: check for popup attribute
+	$popup = ( isset( $atts['popup'] ) && $atts['popup'] ) ? true : false;
+	// 2.5.0: clear widget/block/popup attributes
+	$atts['widget'] = $atts['block'] = $atts['popup'] = 0;
+
+	// --- debug shortcode attributes ---
+	// if ( defined( 'RADIO_PLAYER_DEBUG' ) && RADIO_PLAYER_DEBUG ) {
+		echo '<span style="display:none;">Radio Player Shortcode Attributes: ' . esc_html( print_r( $atts, true ) ) . '</span>';
+	// }
 
 	// --- output head ---
-	echo '<head>';
-		wp_head();
-	echo '</head><body>';
+	// 2.5.0: buffer head content to maybe replace window title tag
+	echo '<head>' . "\n";
+	ob_start();
+	wp_head();
+	$head = ob_get_contents();
+	if ( isset( $atts['title'] ) && $atts['title'] && ( '' != $atts['title'] ) ) {
+		if ( stristr( $head, '<title' ) ) {
+			$posa = stripos( $head, '<title' );
+			$chunks = str_split( $head, $posa );
+			$before = $chunks[0];
+			unset( $chunks[0] );
+			$head = implode( '', $chunks );
+			$posa = stripos( $head, '>' ) + 1;
+			$chunks = str_split( $head, $posa );
+			unset( $chunks[0] );
+			$head = implode( '', $chunks );
+			$posb = stripos( $head, '</title>' ) + strlen( '</title>' );
+			$chunks = str_split( $head, $posb );
+			unset( $chunks[0] );
+			$after = implode( '', $chunks );
+			$head = $before . "\n" . '<title>' . esc_html( $atts['title'] ) . '</title>' . "\n" . $after;
+		} else {
+			$head .= '<title>' . esc_html( $atts['title'] ) . '</title>' . "\n";
+		}
+	}
+	echo $head . "\n";
+	echo '</head>' . "\n";
+
+	// --- open body ---
+	echo '<body>' . "\n";
 
 	// --- output widget contents ---
-	echo '<div id="player-contents">';
+	// 2.5.0: maybe add popup player class
+	echo '<div id="player-contents"';
+	if ( $popup ) {
+		echo ' class="popup"';
+	}
+	echo '>' . "\n";
 		echo radio_station_player_shortcode( $atts );
-	echo '</div>';
+	echo '</div>' . "\n";
 
 	// --- output (hidden) footer for scripts ---
-	echo '<div style="display:none;">';
+	echo '<div style="display:none;">' . "\n";
 		wp_footer();
-	echo '</div>';
+	echo '</div>' . "\n";
 
 	// --- maybe add background color ---
 	if ( isset( $atts['background'] ) ) {
-		echo '<style>#player-contents {background: #' . esc_attr( $atts['background'] ) . ';}</style>';
+		$background = $atts['background'];
+	} else {
+		// 2.5.0: fallaback to apply_filters
+		$background = apply_filters( 'radio_player_background_color', '' );
+	}
+	if ( '' != $background ) {
+		echo '<style>#player-contents {background: #' . esc_attr( $background ) . ';}</style>' . "\n";
 	}
 
-	echo '</body>';
+	echo '</body>' . "\n";
 	exit;
 }
 
@@ -794,12 +851,16 @@ function radio_station_player_sanitize_shortcode_values() {
 		'default'    => 'boolean',
 		'widget'     => 'boolean',
 		'background' => 'text',
+		// 2.5.0: added block attribute
+		'block'      => 'boolean',
 	);
+
+	// 2.5.0: added filter for attribute keys
+	$keys = apply_filters( 'radio_station_player_attribute_keys', $keys );
 
 	// --- sanitize values by key type ---
 	$atts = radio_station_player_sanitize_values( $_REQUEST, $keys );
 	return $atts;
-
 }
 
 // ---------------
@@ -1095,15 +1156,21 @@ function radio_station_player_core_scripts() {
 	// note: intentionally here after player scripts are set
 	if ( !isset( $radio_player['enqeued_player'] ) ) {
 		$js = radio_station_player_get_settings();
-		if ( function_exists( 'wp_add_inline_script' ) ) {
-			// --- add inline script ---
-			wp_add_inline_script( 'radio-player', $js );
-		} else {
-			// --- print settings directly ---
-			echo "<script>" . $js . "</script>";
+		if ( '' != $js ) {
+			if ( function_exists( 'wp_add_inline_script' ) ) {
+				// --- add inline script ---
+				wp_add_inline_script( 'radio-player', $js, 'before' );
+			} else {
+				// --- print settings directly ---
+				echo "<script>" . $js . "</script>";
+			}
 		}
 		$radio_player['enqueued_player'] = true;
 	}
+
+	// 2.5.0: added do action for player scripts
+	do_action( 'radio_station_player_enqueued_scripts' );
+
 }
 
 // ---------------------
@@ -1116,7 +1183,7 @@ function radio_station_player_enqueue_script( $script ) {
 		$radio_player = array();
 	}
 
-	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) {
+	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
 		echo '<span style="display:none;">Default Player Script: ' . $script . '</span>';
 	}
 
@@ -1140,6 +1207,13 @@ function radio_station_player_enqueue_script( $script ) {
 	//	$js = radio_station_player_script_mediaelements();
 	// }
 
+	// --- set specific script as enqueued ---
+	$radio_player['enqeued_' . $script] = true;
+
+	if ( isset( $radio_player['enqueue_inline_scripts'] ) && $radio_player['enqueue_inline_scripts'] ) {
+		return;
+	}
+
 	// 2.4.0.3: load all player scripts regardless
 	$js .= radio_station_player_script_howler();
 	$js .= radio_station_player_script_jplayer();
@@ -1149,7 +1223,7 @@ function radio_station_player_enqueue_script( $script ) {
 	if ( function_exists( 'apply_filters') ) {
 		$pageload = apply_filters( 'radio_station_player_pageload_script', '' );
 		if ( '' != $pageload ) {
-			$js .= "jQuery(document).ready(function() {" . PHP_EOL . $pageload . PHP_EOL . "});" . PHP_EOL;
+			$js .= "\n" . "jQuery(document).ready(function() {" . "\n" . $pageload . "\n" . "});" . "\n";
 		}
 	}
 
@@ -1162,7 +1236,7 @@ function radio_station_player_enqueue_script( $script ) {
 	if ( '' != $js ) {
 		if ( function_exists( 'wp_add_inline_script' ) ) {
 			// --- add inline script ---
-			wp_add_inline_script( 'radio-player', $js );
+			wp_add_inline_script( 'radio-player', $js, 'after' );
 		} else {
 			// --- print script directly ---
 			echo "<script>" . $js . "</script>";
@@ -1170,7 +1244,8 @@ function radio_station_player_enqueue_script( $script ) {
 	}
 
 	// --- set specific script as enqueued ---
-	$radio_player['enqeued_' . $script] = true;
+	$radio_player['enqeued_inline_scripts'] = true;
+
 }
 
 // --------------------------------
@@ -1311,11 +1386,11 @@ function radio_station_player_enqueue_howler( $infooter ) {
 if ( function_exists( 'add_action' ) ) {
 	add_action( 'wp_ajax_radio_station_player_script', 'radio_station_player_script' );
 	add_action( 'wp_ajax_nopriv_radio_station_player_script', 'radio_station_player_script' );
-} elseif ( isset( $_REQUEST['action'] ) && ( 'radio_station_player_script' == $_REQUEST['action'] ) ) {
+} elseif ( isset( $_REQUEST['action'] ) && ( 'radio_station_player_script' == sanitize_text_field( $_REQUEST['action'] ) ) ) {
 	radio_station_player_script();
 }
 function radio_station_player_script() {
-	$script = $_REQUEST['script'];
+	$script = sanitize_text_field( $_REQUEST['script'] );
 	$js = '';
 	if ( 'amplitude' == $script ) {
 		// $js = file_get_contents( dirname( __FILE__ ) . '/js/amplitude' . $suffix . '.js' );
@@ -1350,6 +1425,12 @@ function radio_station_player_script() {
 function radio_station_player_get_settings() {
 
 	global $radio_player;
+	
+	if ( isset( $radio_player['localized-script'] ) ) {
+		return '';
+	}
+	$radio_player['localized-script'] = true;
+	
 	$js = '';
 
 	// ---- set AJAX URL ---
@@ -1450,15 +1531,16 @@ function radio_station_player_get_settings() {
 		$js .= "'image': '" . esc_url( $player_image ) . "', ";
 		$js .= "'singular': " . esc_js( $player_single ) . ", ";
 		// $js .= "'suffix': '" . esc_js( $suffix ) . "', ";
-	$js .= "}" . PHP_EOL;
+	$js .= "}" . "\n";
 
 	// --- maybe limit available scripts for testing purposes ---
 	$valid_scripts = array( 'amplitude', 'howler', 'jplayer' );
 	// 2.4.0.3: set single script override only
-	if ( isset( $_REQUEST['player-script'] ) && in_array( $_REQUST['player-script'], $valid_scripts ) ) {
+	// 2.5.0: fix to typo in $_REQUST['player-script']
+	if ( isset( $_REQUEST['player-script'] ) && in_array( sanitize_text_field( $_REQUEST['player-script'] ), $valid_scripts ) ) {
 		// 2.4.0.3: only allow admin to override script for testing purposes
 		if ( function_exists( 'current_user_can' ) && current_user_can( 'manage_options' ) ) {
-			$player_script = $_REQUEST['player-script'];
+			$player_script = sanitize_text_field( $_REQUEST['player-script'] );
 		}
 	}
 	$scripts = array( $player_script );
@@ -1477,7 +1559,7 @@ function radio_station_player_get_settings() {
 	// 2.4.0.3: allow for admin-only fallback script override
 	if ( isset( $_REQUEST['fallback-scripts'] ) ) {
 		if ( function_exists( 'current_user_can' ) && current_user_can( 'manage_options' ) ) {
-			$fallback_scripts = explode( ',', $_REQUEST['fallback-scripts'] );
+			$fallback_scripts = explode( ',', sanitize_text_field( $_REQUEST['fallback-scripts'] ) );
 			if ( count( $fallback_scripts ) > 0 ) {
 				foreach ( $fallback_scripts as $i => $fallback_script ) {
 					if ( !in_array( $fallback_script, $valid_scripts ) ) {
@@ -1507,7 +1589,7 @@ function radio_station_player_get_settings() {
 		}
 		// $js .= "'media': '" . $radio_player['media_script']['url'] . '?version=' . $radio_player['media_script']['version'] . "', "
 		// $js .= "'elements': '" . $radio_player['elements_script']['url'] . '?version=' . $radio_player['elements_script']['version'] . "', ";
-	$js .= "}" . PHP_EOL;
+	$js .= "}" . "\n";
 
 	// --- set player script supported formats ---
 	// TODO: recheck supported amplitude formats ?
@@ -1523,7 +1605,7 @@ function radio_station_player_get_settings() {
 		$js .= "'jplayer': ['mp3','m4a','webm','oga','rtmpa','wav','flac'], ";
 		$js .= "'amplitude': ['mp3','aac'], ";
 		// $js .= "'mediaelements': ['mp3','wma','wav'], ";
-	$js .= "}" . PHP_EOL;
+	$js .= "}" . "\n";
 
 	// --- set debug mode ---
 	$debug = false; 
@@ -1532,22 +1614,18 @@ function radio_station_player_get_settings() {
 	} elseif ( function_exists( 'apply_filters' ) ) {
 		$debug = apply_filters( 'radio_station_player_debug', $debug );
 	}
-	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) {
+	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
 		$debug = true;
 	}
 	if ( defined( 'RADIO_PLAYER_DEBUG' ) ) {
 		$debug = RADIO_PLAYER_DEBUG;
 	}
-	if ( $debug ) {
-		$debug = 'true';
-	} else {
-		$debug = 'false';
-	}
+	$debug = $debug ? 'true' : 'false';
 
 	// --- set radio player settings and radio data objects ---
 	// (with empty arrays for instances, script types, failbacks, audio targets and stream data)
-	$js .= "var radio_player = {settings:player_settings, scripts:scripts, formats:formats, loading:false, debug:" . esc_js( $debug ) . "}" . PHP_EOL;
-	$js .= "var radio_data = {state:{}, players:[], scripts:[], failed:[], data:[], types:[], channels:[], faders:[]}" . PHP_EOL;
+	$js .= "var radio_player = {settings:player_settings, scripts:scripts, formats:formats, loading:false, debug:" . esc_js( $debug ) . "}" . "\n";
+	$js .= "var radio_data = {state:{}, players:[], scripts:[], failed:[], data:[], types:[], channels:[], faders:[]}" . "\n";
 
 	// --- logged in / user state settings ---
 	$loggedin = 'false';
@@ -1556,23 +1634,21 @@ function radio_station_player_get_settings() {
 		$user_id = get_current_user_id();
 		$state = get_user_meta( $user_id, 'radio_player_state', true );
 	}
-	$js .= "radio_data.state.loggedin = " . esc_js( $loggedin ) . ";" . PHP_EOL;
+	$js .= "radio_data.state.loggedin = " . esc_js( $loggedin ) . ";" . "\n";
 
 	// ---- maybe set play state ---
-	$playing = 'false';
-	if ( isset( $state['playing'] ) && $state['playing'] ) {
-		$playing = 'true';
-	}
-	$js .= "radio_data.state.playing = " . esc_js( $playing ) . "; " . PHP_EOL;
+	// 2.5.0: set playing variable in single line
+	$playing = ( isset( $state['playing'] ) && $state['playing'] ) ? 'true' : 'false';
+	$js .= "radio_data.state.playing = " . esc_js( $playing ) . "; " . "\n";
 
 	// --- maybe set station ID ---
 	if ( isset( $state ) && isset( $state['station'] ) ) {
 		$station = abs( intval( $state['station'] ) );
 	}
 	if ( isset( $station ) && $station && ( $station > 0 ) ) {
-		$js .= "radio_data.state.station = " . esc_js( $station ) . ";" . PHP_EOL;
+		$js .= "radio_data.state.station = " . esc_js( $station ) . ";" . "\n";
 	} else {
-		$js .= "radio_data.state.station = 0;" . PHP_EOL;
+		$js .= "radio_data.state.station = 0;" . "\n";
 	}
 
 	// --- maybe set user volume ---
@@ -1580,17 +1656,17 @@ function radio_station_player_get_settings() {
 	if ( isset( $state ) && isset( $state['volume'] ) ) {
 		$player_volume = abs( intval( $state['volume'] ) );
 	}
-	$js .= "radio_data.state.volume = " . esc_js( $player_volume ) . "; " . PHP_EOL;
+	$js .= "radio_data.state.volume = " . esc_js( $player_volume ) . "; " . "\n";
 
 	// --- maybe set user mute ---
 	$player_mute = 'false';
 	if ( isset( $state ) && isset( $state['mute'] ) && ( $state['mute'] ) ) {
 		$player_mute = 'true';
 	}
-	$js .= "radio_data.state.mute = " . esc_js( $player_mute ) . "; " . PHP_EOL;
+	$js .= "radio_data.state.mute = " . esc_js( $player_mute ) . "; " . "\n";
 
 	// --- set main radio stream data ---
-	$js .= "radio_data.state.data = {};" . PHP_EOL;
+	$js .= "radio_data.state.data = {};" . "\n";
 	if ( function_exists( 'apply_filters' ) ) {
 		$station = ( isset( $state['station'] ) ) ? $state['station'] : 0;
 		// note: this is the main stream data filter hooked into by Radio Station plugin
@@ -1599,10 +1675,10 @@ function radio_station_player_get_settings() {
 	}
 	if ( $data && is_array( $data ) ) {
 		foreach ( $data as $key => $value ) {
-			$js .= "radio_data.state.data['" . $key . "'] = '" . $value . "';" . PHP_EOL;
+			$js .= "radio_data.state.data['" . $key . "'] = '" . $value . "';" . "\n";
 		}
 	}
-	$js .= "radio_player.stream_data = radio_data.state.data;" . PHP_EOL;
+	$js .= "radio_player.stream_data = radio_data.state.data;" . "\n";
 
 	// --- attempt to set player state from cookies ---
 	$js .= "var radio_player_state_loaded = false;
@@ -1612,7 +1688,7 @@ function radio_station_player_get_settings() {
 			radio_player_custom_event('rp-state-loaded', false);			
 			clearInterval(radio_player_state_loader);
 		}
-	}, 1000);" . PHP_EOL;
+	}, 1000);" . "\n";
 
 	/* --- periodic save to user meta --- */
 	$js .= "rp_save_interval = radio_player.settings.saveinterval * 1000;
@@ -1621,7 +1697,7 @@ function radio_station_player_get_settings() {
 			if (!radio_data.state.loggedin) {clearInterval(radio_player_state_saver); return;}
 			radio_player_save_user_state();
 		}
-	}, rp_save_interval);" . PHP_EOL;
+	}, rp_save_interval);" . "\n";
 
 	return $js;
 }
@@ -1633,7 +1709,7 @@ function radio_station_player_get_settings() {
 function radio_station_player_iframe() {
 	// echo '<span style="display:none;">FRAME TEST</span>';
 	if ( function_exists( 'is_user_logged_in') && is_user_logged_in() ) {
-		echo "<iframe src='about:blank' id='radio-player-state-iframe' name='radio-player-state-iframe' style='display:none;'></iframe>";
+		echo "<iframe src='about:blank' id='radio-player-state-iframe' name='radio-player-state-iframe' style='display:none;'></iframe>" . "\n";
 	}
 }
 
@@ -1649,7 +1725,7 @@ if ( function_exists( 'add_action' ) ) {
 function radio_station_player_state() {
 
 	// --- reset saving state in parent frame ---
-	echo "<script>parent.radio_data.state.saving = false;</script>";
+	echo "<script>parent.radio_data.state.saving = false;</script>" . "\n";
 
 	if ( !function_exists( 'get_current_user_id' ) || !function_exists( 'update_user_meta' ) ) {
 		exit;
@@ -1657,21 +1733,25 @@ function radio_station_player_state() {
 
 	// --- get current user ID ---
 	$user_id = get_current_user_id();
-	if ( 0 == $user_id ) {exit;}
+	if ( 0 == $user_id ) {
+		exit;
+	}
 
 	// --- get user state values ---
-	$playing = $_REQUEST['playing'];
-	$volume = $_REQUEST['volume'];
-	$station = $_REQUEST['station'];
-	$mute = $_REQUEST['mute'];
+	$playing = sanitize_text_field( $_REQUEST['playing'] );
+	$volume = sanitize_text_field( $_REQUEST['volume'] );
+	$station = sanitize_text_field( $_REQUEST['station'] );
+	$mute = sanitize_text_field( $_REQUEST['mute'] );
 
 	// --- sanitize user state values ---
-	if ( $playing ) {$playing = true;} else {$playing = false;}
+	$playing = $playing ? true : false;
 	$volume = abs( intval( $volume ) );
 	if ( $volume < 1 ) {$volume = false;} elseif ( $volume > 100 ) {$volume = 100;}
 	$station = abs( intval( $station ) );
-	if ( $station < 1 ) {$station = false;}
-	if ( $mute ) {$mute = true;} else {$mute = false;}
+	if ( $station < 1 ) {
+		$station = false;
+	}
+	$mute = $mute ? true : false;
 
 	// --- save player state to user meta ---
 	$state = array(
@@ -2240,10 +2320,7 @@ function radio_station_player_get_default_script() {
 // ---------------------
 function radio_station_player_enqueue_styles( $script = false, $skin = false ) {
 
-	$suffix = '.min';
-	if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
-		$suffix = '';
-	}
+	$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 
 	// --- get default if not passed by shortcode attribute ---
 	if ( !$script ) {
@@ -2269,8 +2346,8 @@ function radio_station_player_enqueue_styles( $script = false, $skin = false ) {
 	} */
 
 	// --- debug script / skin used ---
-	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) {
-		echo '<span style="display:none;">Script: ' . $script . ' - Skin: ' . $skin . '</span>';
+	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
+		echo '<span style="display:none;">Script: ' . esc_html( $script ) . ' - Skin: ' . esc_html( $skin ) . '</span>' . "\n";
 	}
 
 	// --- enqueue base player styles ---
@@ -2300,19 +2377,30 @@ function radio_station_player_enqueue_styles( $script = false, $skin = false ) {
 
 			// --- enqueue player control styles inline ---
 			$control_styles = radio_station_player_control_styles( false );
-			wp_add_inline_style( 'radio-player', $control_styles );
+			if ( '' != $control_styles ) {
+				wp_add_inline_style( 'radio-player', $control_styles );
+			}
 
 		} else {
 			// --- output style tag directly ---
 			$url = 'css/radio-player' . $suffix . '.css';
-			if ( defined( 'RADIO_PLAYER_URL' ) ) {$url = RADIO_PLAYER_URL . $url;}
+			if ( defined( 'RADIO_PLAYER_URL' ) ) {
+				$url = RADIO_PLAYER_URL . $url;
+			}
 			radio_station_player_style_tag( 'radio-player', $url, $version );
+			
+			// 2.5.0: added missing non-WP control style output
+			$control_styles = radio_station_player_control_styles( false );
+			if ( '' != $control_styles ) {
+				echo '<style>' . $control_styles . '</style>';
+			}
+			
 		}
 
 		// --- debug skin path / URL ---
-		if ( isset( $_REQUEST['player-debug'] ) ) {
-			echo '<span style="display:none;">Skin Path: ' . $path . '</span>';
-			echo '<span style="display:none;">Skin URL: ' . $url . '</span>';
+		if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
+			echo '<span style="display:none;">Skin Path: ' . esc_html( $path ) . '</span>' . "\n";
+			echo '<span style="display:none;">Skin URL: ' . esc_html( $url ) . '</span>' . "\n";
 		}
 		return;
 	}
@@ -2344,9 +2432,9 @@ function radio_station_player_enqueue_styles( $script = false, $skin = false ) {
 		}
 
 		// --- debug skin path / URL ---
-		if ( isset( $_REQUEST['player-debug'] ) ) {
-			echo '<style="display:none;">Skin Path: ' . $path . '</span>';
-			echo '<style="display:none;">Skin URL: ' . $url . '</span>';
+		if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
+			echo '<style="display:none;">Skin Path: ' . esc_html( $path ) . '</span>' . "\n";
+			echo '<style="display:none;">Skin URL: ' . esc_html( $url ) . '</span>' . "\n";
 		}
 	}
 
@@ -2384,7 +2472,7 @@ function radio_station_player_enqueue_styles( $script = false, $skin = false ) {
 			}
 
 			// --- debug skin path / URL ---
-			if ( isset( $_REQUEST['player-debug'] ) ) {
+			if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) ) {
 				echo '<span style="display:none;">Skin Path: ' . $path . '</span>';
 				echo '<span style="display:none;">Skin URL: ' . $url . '</span>';
 			}
@@ -2460,12 +2548,17 @@ function radio_station_player_enqueue_styles( $script = false, $skin = false ) {
 // ---------------------
 function radio_station_player_control_styles( $instance ) {
 
+	global $radio_player;
+
 	// --- set default control colors ---
+	// 2.5.0: added empty text and background color styles
 	$colors = array(
-		'playing'	=> '#70E070',
-		'buttons'	=> '#00A0E0',
-		'track'		=> '#80C080',
-		'thumb'		=> '#80C080',
+		'text'		 => '',
+		'background' => '',
+		'playing'	 => '#70E070',
+		'buttons'	 => '#00A0E0',
+		'track'		 => '#80C080',
+		'thumb'		 => '#80C080',
 	);
 
 	// --- get color settings ---
@@ -2474,35 +2567,67 @@ function radio_station_player_control_styles( $instance ) {
 		$colors['buttons'] = radio_station_get_setting( 'player_buttons_color' );
 		$colors['thumb'] = radio_station_get_setting( 'player_thumb_color' );
 		$colors['track'] = radio_station_get_setting( 'player_range_color' );
-	} elseif ( function_exists( 'apply_filters' ) ) {
+	}
+	if ( function_exists( 'apply_filters' ) ) {
+		$colors['text'] = apply_filters( 'radio_station_player_text_color', $colors['text'], $instance );
+		$colors['background'] = apply_filters( 'radio_station_player_background_color', $colors['background'], $instance );
 		$colors['playing'] = apply_filters( 'radio_station_player_playing_color', $colors['playing'], $instance );
 		$colors['buttons'] = apply_filters( 'radio_station_player_buttons_color', $colors['buttons'], $instance );
 		$colors['thumb'] = apply_filters( 'radio_station_player_thumb_color', $colors['thumb'], $instance );
 		$colors['track'] = apply_filters( 'radio_station_player_range_color', $colors['track'], $instance );
 	}
 
-	// --- maybe set player container selector ---
-	$container = '.radio-container';
-	if ( $instance ) {
+	// --- check for player instance ---
+	if ( false !== $instance ) {
+		
+		// -- set instance container selector ---
 		$container = '#radio_container_' . $instance;
+
 		// --- get colors for container instance ---
-		if ( isset( $radio_player['instance-colors'][$instance] ) ) {
-			$instance_colors = $radio_player['instance-colors'];
-			foreach ( $instance_colors as $key => $instance_color ) {
-				if ( $instance_color && ( '' != $instance_color ) ) {
-					$colors[$key] = $instance_color;
+		if ( isset( $radio_player['instance-props'][$instance] ) ) {
+			$instance_props = $radio_player['instance-props'][$instance];
+			foreach ( $instance_props as $key => $value ) {
+				if ( substr( $key, -6, 6 ) == '_color' ) {
+					if ( $value && ( '' != $value ) ) {
+						if ( substr( $value, 0, 3 ) !== 'rgb' ) {
+							$value = '#' . $value;
+						}
+						$key = str_replace( '_color', '', $key );
+						$colors[$key] = $value;
+					}
 				}
 			}
 		}
+	} else {
+		// 2.5.0: added check to do once only
+		if ( isset( $radio_player['control-styles'] ) ) {
+			return '';
+		}
+		$radio_player['control-styles'] = true;
+		
+		// --- set generic container selector ---
+		$container = '.radio-container';
 	}
+
 	// 2.4.0.3: added missing function_exists wrapper
 	if ( function_exists( 'apply_filters' ) ) {
 		$colors = apply_filters( 'radio_station_player_control_colors', $colors, $instance );
 	}
 
+	$css = '';
+
+	// --- Player Colors ---
+	// 2.5.0: added for main color styling override
+	if ( isset( $colors['text'] ) && ( '' != $colors['text'] ) ) {
+		$css .= $container . " {color: " . $colors['text'] . ";}" . "\n";
+	}
+	if ( isset( $colors['background'] ) && ( '' != $colors['background'] ) ) {
+		$css .= $container . " {background-color: " . $colors['background'] . ";}" . "\n";
+	}
+
 	// --- Play Button ---
 	// 2.4.0.2: fix to glowingloading animation reference
-	$css = "/* Playing Button */
+	$css .= "/* Playing Button */
 " . $container . ".loaded .rp-play-pause-button-bg {background-color: " . $colors['buttons'] . ";}
 " . $container . ".playing .rp-play-pause-button-bg {background-color: " . $colors['playing'] . ";}
 " . $container . ".error .rp-play-pause-button-bg {background-color: #CC0000;}
@@ -2514,27 +2639,30 @@ function radio_station_player_control_styles( $instance ) {
 }
 @keyframes glowingplaying {
 	from {background-color: " . $colors['playing'] . ";} to {background-color: " . $colors['playing'] . "C0;}
-}" . PHP_EOL;
+}" . "\n";
 
 	// --- Active Volume Buttons Color ---
+	// 2.5.0: added popup player button selector
 	$css .= "/* Volume Buttons */
 " . $container . " .rp-mute:hover, " . $container . ".muted .rp-mute, " . $container . ".muted .rp-mute:hover,
 " . $container . " .rp-volume-max:focus, " . $container . " .rp-volume-max:hover, " . $container . ".maxed .rp-volume-max,
 " . $container . " .rp-volume-up:focus, " . $container . " .rp-volume-up:hover,
-" . $container . " .rp-volume-down:focus, " . $container . " .rp-volume-down:hover {
+" . $container . " .rp-volume-down:focus, " . $container . " .rp-volume-down:hover,
+" . $container . " .rp-popup-button:focus, " . $container . " .rp-popup-button:hover {
 	background-color: " . $colors['buttons'] . ";
-}" . PHP_EOL;
+}" . "\n";
 
 	// --- Volume Range Input and Container ---
 	// ref: http://danielstern.ca/range.css/#/
 	// ref: https://css-tricks.fcom/sliding-nightmare-understanding-range-input/
 	// 2.4.0.4: added no border style to range input (border added on some themes)
+	// 2.5.0: added input height 100% to fix vertical slider alignment
 	$css .= "/* Range Input */
 " . $container . " .rp-volume-controls input[type=range] {";
-	$css .= "margin: 0; background-color: transparent; vertical-align: middle; -webkit-appearance: none; border: none;}
+	$css .= "height: 100%; margin: 0; background-color: transparent; vertical-align: middle; -webkit-appearance: none; border: none;}
 " . $container . " .rp-volume-controls input[type=range]:focus {outline: none; box-shadow: none;}
 " . $container . " .rp-volume-controls input[type=range]::-moz-focus-inner,
-" . $container . " .rp-volume-controls input[type=range]::-moz-focus-outer {outline: none; box-shadow: none;}" . PHP_EOL;
+" . $container . " .rp-volume-controls input[type=range]::-moz-focus-outer {outline: none; box-shadow: none;}" . "\n";
 
 	// --- Range Track (synced Background Div) ---
 	// 2.4.0.3: add position absolute/top on slider background (cross-browser display fix)
@@ -2544,17 +2672,19 @@ function radio_station_player_control_styles( $instance ) {
 	border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 3px; background: rgba(128, 128, 128, 0.5);
 }
 " . $container . ".playing .rp-volume-controls .rp-volume-slider-bg {background: " . $colors['track'] . ";}
-" . $container . ".playing.muted .rp-volume-controls .rp-volume-slider-bg {background: rgba(128, 128, 128, 0.5);}" . PHP_EOL;
+" . $container . ".playing.muted .rp-volume-controls .rp-volume-slider-bg {background: rgba(128, 128, 128, 0.5);}" . "\n";
 
 	// --- Slider Range Track (Clickable Transparent) ---
 	$css .= "/* Range Track */
-" . $container . " .rp-volume-controls input[type=range]::-webkit-slider-runnable-track {height: 9px; background: transparent; -webkit-appearance: none;}
-" . $container . " .rp-volume-controls input[type=range]::-moz-range-track {height: 9px; background: transparent;}
-" . $container . " .rp-volume-controls input[type=range]::-ms-track {height: 9px; color: transparent; background: transparent; border-color: transparent;}" . PHP_EOL;
+" . $container . " .rp-volume-controls input[type=range]::-webkit-slider-runnable-track {height: 9px; background: transparent; -webkit-appearance: none; color: transparent}
+" . $container . " .rp-volume-controls input[type=range]::-moz-range-track {height: 9px; background: transparent; color: transparent;}
+" . $container . " .rp-volume-controls input[type=range]::-ms-track {height: 9px; color: transparent; background: transparent; border-color: transparent;}" . "\n";
 // 2.4.0.3: remove float on range input (cross-browser display fix)
 // " . $container . " .rp-volume-controls input[type=range] {float: left; margin-top: -9px;}
 
 	// --- Slider Range Thumb ---
+	$thumb_radius = '9px';
+	
 	$css .= "/* Range Thumb */
 " . $container . " .rp-volume-controls input[type=range]::-webkit-slider-thumb {
 	width: 18px; height: 18px; cursor: pointer; background: rgba(128, 128, 128, 1);
@@ -2569,40 +2699,51 @@ function radio_station_player_control_styles( $instance ) {
 	width: 18px; height: 18px; cursor: pointer; background: rgba(128, 128, 128, 1);
 	border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 9px; margin-top: 0px;
 }
-" . $container .".playing .rp-volume-controls input[type=range]::-webkit-slider-thumb {background: " . $colors['thumb'] . "};
-" . $container .".playing .rp-volume-controls input[type=range]::-moz-range-thumb {background: " . $colors['thumb'] . "};
-" . $container .".playing .rp-volume-controls input[type=range]::-ms-thumb {background: " . $colors['thumb'] . "};
+" . $container . ".rounded .rp-volume-controls input[type=range]::-webkit-slider-thumb {border-radius: 5px !important;}
+" . $container . ".square .rp-volume-controls input[type=range]::-webkit-slider-thumb {border-radius: 0px !important;}
+" . $container . ".playing .rp-volume-controls input[type=range]::-webkit-slider-thumb {background: " . $colors['thumb'] . "};
+" . $container . ".playing .rp-volume-controls input[type=range]::-moz-range-thumb {background: " . $colors['thumb'] . "};
+" . $container . ".playing .rp-volume-controls input[type=range]::-ms-thumb {background: " . $colors['thumb'] . "};
+" . $container . " input[type=range]::-ms-tooltip {display: none;}
 @supports (-ms-ime-align:auto) {
   " . $container . " .rp-volume-controls input[type=range] {margin: 0;}
-}";
+}" . "\n";
 
 	// --- dummy element style for thumb width ---
 	// note: since *actual* range input thumb width is hard/impossible to get with jQuery,
 	// if changing the thumb width style, override this style also for volume background to match!
-	$css .= PHP_EOL . $container . " .rp-volume-thumb {display: none; width: 18px;}" . PHP_EOL;
+	$css .= $container . " .rp-volume-thumb {display: none; width: 18px;}" . "\n";
 
 	// --- get volume control display settings ---
 	// 2.4.1.4: added volume control visibility options
-	if ( function_exists( 'radio_station_get_setting' ) ) {
-		$volumes = radio_station_get_setting( 'player_volumes' );
-		if ( !is_array( $volumes ) ) {
-			$volumes = array( 'slider', 'updown', 'mute', 'max' );
+	// 2.5.0: added check for instance property for volume controls
+	if ( isset( $radio_player['instance-props'][$instance]['volume-controls'] ) ) {
+		$volume_controls = $radio_player['instance-props'][$instance]['volume-controls'];
+	} elseif ( function_exists( 'radio_station_get_setting' ) ) {
+		$volume_controls = radio_station_get_setting( 'player_volumes' );
+		if ( !is_array( $volume_controls ) ) {
+			$volume_controls = array( 'slider', 'updown', 'mute', 'max' );
 		}
-	} elseif ( function_exists( 'apply_filters' ) ) {
-		$volumes = array( 'slider', 'updown', 'mute', 'max' );
-		$volumes = apply_filters( 'radio_station_player_volumes_display', $volumes );
 	}
-	if ( !in_array( 'slider', $volumes ) ) {
-		$css .= PHP_EOL . $container . " .rp-volume-slider-container {display: none;}" . PHP_EOL;
+	if ( function_exists( 'apply_filters' ) ) {
+		if ( !isset( $volume_controls ) ) {
+			$volume_controls = array( 'slider', 'updown', 'mute', 'max' );
+		}
+		$volume_controls = apply_filters( 'radio_station_player_volumes_display', $volume_controls );
 	}
-	if ( !in_array( 'updown', $volumes ) ) {
-		$css .= PHP_EOL . $container . " .rp-volume-up, " . $container . " .rp-volume-down {display: none;}" . PHP_EOL;
+
+	// --- volume display styles ---
+	if ( !in_array( 'slider', $volume_controls ) ) {
+		$css .= "\n" . $container . " .rp-volume-slider-container {display: none;}" . "\n";
 	}
-	if ( !in_array( 'mute', $volumes ) ) {
-		$css .= PHP_EOL . $container . " .rp-mute {display: none;}" . PHP_EOL;
+	if ( !in_array( 'updown', $volume_controls ) ) {
+		$css .= "\n" . $container . " .rp-volume-up, " . $container . " .rp-volume-down {display: none;}" . "\n";
 	}
-	if ( !in_array( 'max', $volumes ) ) {
-		$css .= PHP_EOL . $container . " .rp-volume-max {display: none;}" . PHP_EOL;
+	if ( !in_array( 'mute', $volume_controls ) ) {
+		$css .= "\n" . $container . " .rp-mute {display: none;}" . "\n";
+	}
+	if ( !in_array( 'max', $volume_controls ) ) {
+		$css .= "\n" . $container . " .rp-volume-max {display: none;}" . "\n";
 	}
 
 	// --- filter and return ---
@@ -2619,7 +2760,7 @@ function radio_station_player_control_styles( $instance ) {
 // ------------------
 // add_filter( 'style_loader_tag', 'radio_station_player_debug_skin',10, 2 );
 // function radio_station_player_debug_skin( $tag, $handle ) {
-// 	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == $_REQUEST['player-debug'] ) ) {
+// 	if ( isset( $_REQUEST['player-debug'] ) && ( '1' == sanitize_text_field( $_REQUEST['player-debug'] ) ) ) {
 //		if ( 'rp-jplayer' == $handle ) {
 //			echo "[!Radio Player JPlayer Handle Found!]";
 //		}
@@ -2658,8 +2799,12 @@ function radio_station_player_validate_boolean( $var ) {
 		return $var;
 	}
 
-	if ( is_string( $var ) && 'false' === strtolower( $var ) ) {
-		return false;
+	if ( is_string( $var ) ) {
+		if ( 'false' === strtolower( $var ) ) {
+			return false;
+		} elseif ( 'true' === strtolower( $var ) ) {
+			return true;
+		}
 	}
 
 	return (bool) $var;
@@ -2691,3 +2836,10 @@ if ( !function_exists( 'esc_url' ) ) {
 	return $url;
  }
 }
+
+if ( !function_exists( 'sanitize_text_field' ) ) {
+ function sanitize_text_field( $text ) {
+	return $text;
+ }
+}
+
