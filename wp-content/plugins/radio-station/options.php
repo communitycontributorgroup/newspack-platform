@@ -430,7 +430,7 @@ $options = array(
 		'label'   => __( 'Single Player at Once', 'radio-station' ),
 		'default' => 'yes',
 		'value'   => 'yes',
-		'helper'  => __( 'Stop any existing Players on the page or in other windows or tabs when a Player is started.', 'radio-station' ),
+		'helper'  => __( 'Stop any existing Player instances on the page or in other windows or tabs when a Player is started.', 'radio-station' ),
 		'tab'     => 'player',
 		'section' => 'advanced',
 		'pro'     => false,
@@ -605,6 +605,23 @@ $options = array(
 		'section' => 'bar',
 		'helper'  => __( 'Display the currently playing song in the Player Bar, if a supported metadata format is available. (Icy Meta, Icecast, Shoutcast 1/2, Current Playlist)', 'radio-station' ),
 		'pro'     => true,
+	),
+
+	// --- [Pro/Player] Track Animation ---
+	'player_bar_track_animation' => array(
+		'type'    => 'select',
+		'label'   => __( 'Track Animation', 'radio-station' ),
+		'default' => 'backandforth',
+		'options' => array(
+			'none'         => __( 'No Animation', 'radio-station' ),
+			'lefttoright'  => __( 'Left to Right Ticker', 'radio-station' ),
+			'righttoleft'  => __( 'Right to Left Ticker', 'radio-station' ),
+			'backandforth' => __( 'Back and Forth', 'radio-station' ),
+		),
+		'tab'     => 'player',
+		'section' => 'bar',
+		'helper'  => __( 'How to animate the currently playing track display.', 'radio-station' ),
+		'pro'     => true,	
 	),
 
 	// --- [Pro/Player] Metadata URL ---
@@ -1030,7 +1047,7 @@ $options = array(
 		'options' => array(
 			''     => __( 'Off', 'radio-station' ),
 			'yes'  => __( 'List', 'radio-station' ),
-			// 'grid' => __( 'Grid', 'radio-station' ),
+			'grid' => __( 'Grid', 'radio-station' ),
 		),
 		'value'   => 'yes',
 		'default' => 'yes',
@@ -1223,7 +1240,7 @@ $options = array(
 		'label'   => __( 'User Timezone Switching', 'radio-station' ),
 		'default' => 'yes',
 		'value'   => 'yes',
-		'helper'  => __( 'Allow visitors to select their Timezone manually for Show time translations.', 'radio-station' ),
+		'helper'  => __( 'Allow visitors to select their Timezone manually for Show time conversions.', 'radio-station' ),
 		'tab'     => 'widgets',
 		'section' => 'loading',
 		'pro'     => true,

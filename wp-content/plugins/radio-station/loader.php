@@ -5,7 +5,7 @@
 // =================================
 //
 // --------------
-// Version: 1.2.7
+// Version: 1.2.8
 // --------------
 // Note: Changelog and structure at end of file.
 //
@@ -582,9 +582,9 @@ if ( !class_exists( 'radio_station_loader' ) ) {
 
 					if ( $this->debug ) {
 						// phpcs:ignore WordPress.PHP.DevelopmentFunctions
-						echo 'Saving Setting Key ' . esc_html( $key ) . ' (' . esc_html( $postkey ) . ')<br>' . PHP_EOL;
+						echo 'Saving Setting Key ' . esc_html( $key ) . ' (' . esc_html( $postkey ) . ')<br>' . "\n";
 						// phpcs:ignore WordPress.PHP.DevelopmentFunctions
-						echo 'Type: ' . esc_html( $type ) . ' - Valid Options ' . esc_html( $key ) . ': ' . esc_html( print_r( $valid, true ) ) . '<br>' . PHP_EOL;
+						echo 'Type: ' . esc_html( $type ) . ' - Valid Options ' . esc_html( $key ) . ': ' . esc_html( print_r( $valid, true ) ) . '<br>' . "\n";
 					}
 
 					// --- sanitize value according to type ---
@@ -676,7 +676,8 @@ if ( !class_exists( 'radio_station_loader' ) ) {
 						if ( strstr( $posted, ',' ) ) {
 							$posted = explode( ',', $posted );
 						} else {
-							$posted[0] = $posted;
+							// 1.2.8: fix to convert string to array
+							$posted = array( $posted );
 						}
 						foreach ( $posted as $i => $value ) {
 							$posted[$i] = trim( $value );
@@ -744,7 +745,14 @@ if ( !class_exists( 'radio_station_loader' ) ) {
 							$values = array();
 							// 1.2.7: fix color variable to posted
 							// 1.2.7: make alpha a value key not separate
-							sscanf( $posted, 'rgba(%d,%d,%d,%f)', $values['red'], $values['green'], $values['blue'], $values['alpha'] );
+							// 1.2.7: check number of commas to see if alpha is set
+							$commas = substr_count( $posted, ',' );
+							if ( 3 == $commas ) {
+								sscanf( $posted, 'rgba(%d,%d,%d,%f)', $values['red'], $values['green'], $values['blue'], $values['alpha'] );
+							} elseif ( 2 == $commas ) {
+								// 1.2.8: remove a from rgba (failing for non-alpha selections)
+								sscanf( $posted, 'rgb(%d,%d,%d)', $values['red'], $values['green'], $values['blue'] );
+							}
 							// echo 'rgba sscanf values: ' . print_r( $values, true ) . "\n";
 							// 1.2.7: fix for use of duplicate key variable
 							foreach ( $values as $k => $v ) {
@@ -765,7 +773,12 @@ if ( !class_exists( 'radio_station_loader' ) ) {
 									}
 								}
 							}
-							$posted = 'rgba(' . $values['red'] . ',' . $values['green'] . ',' . $values['blue'] . ',' . $values['alpha'] . ')';
+							if ( 3 == $commas ) {
+								$posted = 'rgba(' . $values['red'] . ',' . $values['green'] . ',' . $values['blue'] . ',' . $values['alpha'] . ')';
+							} elseif ( 2 == $commas ) {
+								// 1.2.8: remove a from rgba (for non-alpha selections)
+								$posted = 'rgb(' . $values['red'] . ',' . $values['green'] . ',' . $values['blue'] . ')';
+							}
 						}
 						$settings[$key] = $posted;
 
@@ -776,14 +789,14 @@ if ( !class_exists( 'radio_station_loader' ) ) {
 						// 1.2.0: added isset check for newsetting
 						if ( !is_null( $newsettings ) ) {
 							// phpcs:ignore WordPress.PHP.DevelopmentFunctions
-							echo '(To-validate) ' . esc_html( print_r( $newsettings, true ) ) . '<br>' . PHP_EOL;
+							echo '(To-validate) ' . esc_html( print_r( $newsettings, true ) ) . '<br>' . "\n";
 						} else {
 							// 1.1.7 handle if (new) key not set yet
 							if ( isset( $settings[$key] ) ) {
 								// phpcs:ignore WordPress.PHP.DevelopmentFunctions
 								echo '(Validated) ' . esc_html( print_r( $settings[$key], true ) ) . '<br>' . PHP_EOL;
 							} else {
-								echo 'No setting yet for key ' . esc_html( $key ) . '<br>' . PHP_EOL;
+								echo 'No setting yet for key ' . esc_html( $key ) . '<br>' . "\n";
 							}
 						}
 					}
@@ -827,7 +840,7 @@ if ( !class_exists( 'radio_station_loader' ) ) {
 									$newvalue = $this->validate_setting( $value, $valid, $validate_args );
 									$newvalues[] = $newvalue;
 									if ( $this->debug ) {
-										echo 'Validated Setting value ' . esc_html( $value ) . ' to ' . esc_html( $newvalue ) . '<br>' . PHP_EOL;
+										echo 'Validated Setting value ' . esc_html( $value ) . ' to ' . esc_html( $newvalue ) . '<br>' . "\n";
 									}
 								}
 								$newsettings = implode( ',', $newvalues );
@@ -837,7 +850,7 @@ if ( !class_exists( 'radio_station_loader' ) ) {
 								// 1.1.9: fix to allow saving of zero value
 								// 1.2.1: fix to allow saving of empty value
 								if ( $this->debug ) {
-									echo 'Validated Setting single value ' . esc_html( $newsettings ) . ' to ' . esc_html( $newsetting ) . '<br>' . PHP_EOL;
+									echo 'Validated Setting single value ' . esc_html( $newsettings ) . ' to ' . esc_html( $newsetting ) . '<br>' . "\n";
 								}
 								if ( $newsetting || ( '' == $newsetting ) || ( 0 == $newsetting ) || ( '0' == $newsetting ) ) {
 									$settings[$key] = $newsetting;
@@ -847,9 +860,9 @@ if ( !class_exists( 'radio_station_loader' ) ) {
 
 						if ( $this->debug ) {
 							// phpcs:ignore WordPress.PHP.DevelopmentFunctions
-							echo 'Valid Options for Key ' . esc_html( $key ) . ': ' . esc_html( print_r( $valid, true ) ) . '<br>' . PHP_EOL;
+							echo 'Valid Options for Key ' . esc_html( $key ) . ': ' . esc_html( print_r( $valid, true ) ) . '<br>' . "\n";
 							// phpcs:ignore WordPress.PHP.DevelopmentFunctions
-							echo 'Validated Settings for Key ' . esc_html( $key ) . ': ' . esc_html( print_r( $settings[$key], true ) ) . '<br>' . PHP_EOL;
+							echo 'Validated Settings for Key ' . esc_html( $key ) . ': ' . esc_html( print_r( $settings[$key], true ) ) . '<br>' . "\n";
 						}
 					}
 
@@ -3455,8 +3468,13 @@ if ( !function_exists( 'radio_station_load_prefixed_functions' ) ) {
 // CHANGELOG
 // =========
 
+// == 1.2.8 ==
+// - fix saving non-alpha colours in coloralpha fields
+// - fix saving of single value in CSV field
+
 // == 1.2.7 ==
 // - fix color picker alpha sanitization / saving
+// - allow color picker alpha to not include alpha
 // - added color picker dropdown overlay styling
 // - added pointer cursor style to inactive tab
 
@@ -3601,8 +3619,3 @@ if ( !function_exists( 'radio_station_load_prefixed_functions' ) ) {
 // == 0.9.0 ==
 // - Development Version
 
-
-// -----------------
-// Development TODOs
-// -----------------
-// - use sanitize text field on textarea ?
