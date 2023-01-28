@@ -67,6 +67,19 @@ $options = array(
 		'section' => 'broadcast',
 	),
 
+	// --- Ping Netmix Directory ---
+	// note: disabled by default for WordPress.org repository compliance
+	// 2.5.0: moved from feeds to broadcast section
+	'ping_netmix_directory' => array(
+		'type'    => 'checkbox',
+		'label'   => __( 'Ping Netmix Directory', 'radio-station' ),
+		'default' => '',
+		'value'   => 'yes',
+		'helper'  => __( 'If you have a Netmix Directory listing, enable this to ping the directory whenever you update your schedule.', 'radio-station' ),
+		'tab'     => 'general',
+		'section' => 'broadcast',
+	),
+
 	// === Station ===
 
 	// --- [Player] Station Title ---
@@ -183,18 +196,6 @@ $options = array(
 		'default' => 'yes',
 		'value'   => 'yes',
 		'helper'  => __( 'Enable Station Data Feeds via WordPress Feed links.', 'radio-station' ),
-		'tab'     => 'general',
-		'section' => 'feeds',
-	),
-
-	// --- Ping Netmix Directory ---
-	// note: disabled by default for WordPress.org repository compliance
-	'ping_netmix_directory' => array(
-		'type'    => 'checkbox',
-		'label'   => __( 'Ping Netmix Directory', 'radio-station' ),
-		'default' => '',
-		'value'   => 'yes',
-		'helper'  => __( 'If you have a Netmix Directory listing, enable this to ping the directory whenever you update your schedule.', 'radio-station' ),
 		'tab'     => 'general',
 		'section' => 'feeds',
 	),
@@ -336,10 +337,11 @@ $options = array(
 
 	// --- [Player] Volume Controls  ---
 	// 2.4.0.3: added enable/disable volume controls option
+	// 2.5.0: default to volume slider only
 	'player_volumes' => array(
 		'type'    => 'multicheck',
 		'label'   => __( 'Volume Controls', 'radio-station' ),
-		'default' => array( 'slider', 'updown', 'mute', 'max' ),
+		'default' => array( 'slider' ),
 		'options' => array(
 			'slider'   => __( 'Volume Slider', 'radio-station' ),
 			'updown'   => __( 'Volume Plus / Minus', 'radio-station' ),
@@ -607,7 +609,21 @@ $options = array(
 		'pro'     => true,
 	),
 
+	// --- [Pro/Player] Metadata URL ---
+	// 2.4.0.3: added for alternative stream metadata URL
+	'player_bar_metadata' => array(
+		'type'    => 'text',
+		'options' => 'URL',
+		'label'   => __( 'Metadata URL', 'radio-station' ),
+		'default' => '',
+		'tab'     => 'player',
+		'section' => 'bar',
+		'helper'  => __( 'Now playing metadata is normally retrieved via the Stream URL. Use this setting if you need to provide an alternative metadata location.', 'radio-station' ),
+		'pro'     => true,
+	),
+
 	// --- [Pro/Player] Track Animation ---
+	// 2.5.0: added track animation option
 	'player_bar_track_animation' => array(
 		'type'    => 'select',
 		'label'   => __( 'Track Animation', 'radio-station' ),
@@ -623,21 +639,6 @@ $options = array(
 		'helper'  => __( 'How to animate the currently playing track display.', 'radio-station' ),
 		'pro'     => true,	
 	),
-
-	// --- [Pro/Player] Metadata URL ---
-	// 2.4.0.3: added for alternative stream metadata URL
-	'player_bar_metadata' => array(
-		'type'    => 'text',
-		'options' => 'URL',
-		'label'   => __( 'Metadata URL', 'radio-station' ),
-		'default' => '',
-		'tab'     => 'player',
-		'section' => 'bar',
-		'helper'  => __( 'Now playing metadata is normally retrieved via the Stream URL. Use this setting if you need to provide an alternative metadata location.', 'radio-station' ),
-		'pro'     => true,
-	),
-
-	// TODO: additional CSS input textarea field ?
 
 	// === Master Schedule Page ===
 

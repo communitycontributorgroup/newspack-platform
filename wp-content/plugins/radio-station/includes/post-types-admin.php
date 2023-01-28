@@ -2677,6 +2677,7 @@ function radio_station_show_column_data( $column, $post_id ) {
 		$shifts = get_post_meta( $post_id, 'show_sched', true );
 		if ( $shifts && is_array( $shifts ) && ( count( $shifts ) > 0 ) ) {
 
+			// 2.5.0: fix variable inconsistency for sorted shifts
 			$sorted_shifts = $dayless_shifts = array();
 			foreach ( $shifts as $shift ) {
 				// 2.3.2: added check that shift day is not empty
@@ -2686,77 +2687,80 @@ function radio_station_show_column_data( $column, $post_id ) {
 					$shift_time = radio_station_convert_shift_time( $shift_time );
 					$shift_time = $weekdates[$shift['day']] . $shift_time;
 					$timestamp = radio_station_to_time( $shift_time );
-					$sortedshifts[$timestamp] = $shift;
+					$sorted_shifts[$timestamp] = $shift;
 				} else {
 					$dayless_shifts[] = $shift;
 				}
 			}
-			ksort( $sortedshifts );
 
-			foreach ( $sortedshifts as $shift ) {
+			// 2.5.0: added count check for sorted_shifts
+			if ( count( $sorted_shifts ) > 0 ) {
+				ksort( $sorted_shifts );
+				foreach ( $sorted_shifts as $shift ) {
 
-				// 2.3.0: highlight disabled shifts
-				$classes = array( 'show-shift' );
-				$disabled = false;
-				$title = '';
-				if ( isset( $shift['disabled'] ) && ( 'yes' == $shift['disabled'] ) ) {
-					$disabled = true;
-					$classes[] = 'disabled';
-					$title = __( 'This Shift is Disabled.', 'radio-station' );
-				}
-
-				// --- check and highlight conflicts ---
-				// 2.3.0: added shift conflict checking
-				$conflicts = radio_station_check_shift( $post_id, $shift );
-				if ( $conflicts ) {
-					$classes[] = 'conflict';
-					if ( $disabled ) {
-						$title = __( 'This Shift has Schedule Conflicts and is Disabled.', 'radio-station' );
-					} else {
-						$title = __( 'This Shift has Schedule Conflicts.', 'radio-station' );
-					}
-				}
-
-				// 2.3.0: also highlight if the show is not active
-				if ( !$active ) {
-					if ( !in_array( 'disabled', $classes ) ) {
+					// 2.3.0: highlight disabled shifts
+					$classes = array( 'show-shift' );
+					$disabled = false;
+					$title = '';
+					if ( isset( $shift['disabled'] ) && ( 'yes' == $shift['disabled'] ) ) {
+						$disabled = true;
 						$classes[] = 'disabled';
+						$title = __( 'This Shift is Disabled.', 'radio-station' );
 					}
-					$title = __( 'This Show is not currently active.', 'radio-station' );
-				}
-				$classlist = implode( ' ', $classes );
 
-				echo '<div class="' . esc_attr( $classlist ) . '" title="' . esc_attr( $title ) . '">' . "\n";
-
-					// --- get shift start and end times ---
-					// 2.3.2: fix to convert to 24 hour time
-					$start = $shift['start_hour'] . ":" . $shift['start_min'] . $shift['start_meridian'];
-					$end = $shift['end_hour'] . ":" . $shift['end_min'] . $shift['end_meridian'];
-					$start_time = radio_station_convert_shift_time( $start );
-					$end_time =  radio_station_convert_shift_time( $end );
-					$start_time = radio_station_to_time( $weekdates[$shift['day']] . ' ' . $start_time );
-					$end_time = radio_station_to_time( $weekdates[$shift['day']] . ' ' . $end_time );
-
-					// --- make weekday filter selections bold ---
-					// 2.3.0: fix to bolding only if weekday isset
-					$bold = false;
-					if ( isset( $_GET['weekday'] ) ) {
-						$weekday = trim( sanitize_text_field( $_GET['weekday'] ) );
-						$nextday = radio_station_get_next_day( $weekday );
-						// 2.3.0: handle shifts that go overnight for weekday filter
-						if ( ( $weekday == $shift['day'] ) || ( ( $shift['day'] == $nextday ) && ( $end_time < $start_time ) ) ) {
-							echo '<b>';
-							$bold = true;
+					// --- check and highlight conflicts ---
+					// 2.3.0: added shift conflict checking
+					$conflicts = radio_station_check_shift( $post_id, $shift );
+					if ( $conflicts ) {
+						$classes[] = 'conflict';
+						if ( $disabled ) {
+							$title = __( 'This Shift has Schedule Conflicts and is Disabled.', 'radio-station' );
+						} else {
+							$title = __( 'This Shift has Schedule Conflicts.', 'radio-station' );
 						}
 					}
 
-					echo esc_html( radio_station_translate_weekday( $shift['day'] ) );
-					echo ' ' . esc_html( $start ) . ' - ' . esc_html( $end );
-					if ( $bold ) {
-						echo '</b>';
+					// 2.3.0: also highlight if the show is not active
+					if ( !$active ) {
+						if ( !in_array( 'disabled', $classes ) ) {
+							$classes[] = 'disabled';
+						}
+						$title = __( 'This Show is not currently active.', 'radio-station' );
 					}
+					$classlist = implode( ' ', $classes );
 
-				echo '</div>' . "\n";
+					echo '<div class="' . esc_attr( $classlist ) . '" title="' . esc_attr( $title ) . '">' . "\n";
+
+						// --- get shift start and end times ---
+						// 2.3.2: fix to convert to 24 hour time
+						$start = $shift['start_hour'] . ":" . $shift['start_min'] . $shift['start_meridian'];
+						$end = $shift['end_hour'] . ":" . $shift['end_min'] . $shift['end_meridian'];
+						$start_time = radio_station_convert_shift_time( $start );
+						$end_time =  radio_station_convert_shift_time( $end );
+						$start_time = radio_station_to_time( $weekdates[$shift['day']] . ' ' . $start_time );
+						$end_time = radio_station_to_time( $weekdates[$shift['day']] . ' ' . $end_time );
+
+						// --- make weekday filter selections bold ---
+						// 2.3.0: fix to bolding only if weekday isset
+						$bold = false;
+						if ( isset( $_GET['weekday'] ) ) {
+							$weekday = trim( sanitize_text_field( $_GET['weekday'] ) );
+							$nextday = radio_station_get_next_day( $weekday );
+							// 2.3.0: handle shifts that go overnight for weekday filter
+							if ( ( $weekday == $shift['day'] ) || ( ( $shift['day'] == $nextday ) && ( $end_time < $start_time ) ) ) {
+								echo '<b>';
+								$bold = true;
+							}
+						}
+
+						echo esc_html( radio_station_translate_weekday( $shift['day'] ) );
+						echo ' ' . esc_html( $start ) . ' - ' . esc_html( $end );
+						if ( $bold ) {
+							echo '</b>';
+						}
+
+					echo '</div>' . "\n";
+				}
 			}
 
 			// --- dayless shifts ---
@@ -2984,7 +2988,8 @@ function radio_station_override_show_metabox() {
 			$sync_genres = get_post_meta( $post_id, 'sync_genres', true );
 			echo '<li id="override-genres">' . "\n";
 				echo '<div class="input-label">' . "\n";
-					echo '<label><b>' . esc_html( 'Sync Genres?', 'radio-station' ) . '</b></label>' . "\n";
+					// 2.5.0: add missing translation wrapper
+					echo '<label><b>' . esc_html( __( 'Sync Genres?', 'radio-station' ) ) . '</b></label>' . "\n";
 				echo '</div>' . "\n";
 				echo '<div class="input-field">' . "\n";
 					echo '<input id="override-genres-input" type="checkbox" name="sync_genres" value="yes" onclick="radio_sync_genres();"';
@@ -3003,7 +3008,8 @@ function radio_station_override_show_metabox() {
 			$sync_languages = get_post_meta( $post_id, 'sync_languages', true );
 			echo '<li id="override-languages">' . "\n";
 				echo '<div class="input-label">' . "\n";
-					echo '<label><b>' . esc_html( 'Sync Languages?', 'radio-station' ) . '</b></label>' . "\n";
+					// 2.5.0: add missing translation wrapper
+					echo '<label><b>' . esc_html( __( 'Sync Languages?', 'radio-station' ) ) . '</b></label>' . "\n";
 				echo '</div>' . "\n";
 				echo '<div class="input-field">' . "\n";
 					echo '<input id="override-languages-input" type="checkbox" name="sync_languages" value="yes" onclick="radio_sync_languages();"';
