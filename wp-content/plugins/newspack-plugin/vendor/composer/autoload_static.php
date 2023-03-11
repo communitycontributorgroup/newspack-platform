@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitb586700228cf42109676a41f517464ea
+class ComposerStaticInit146c7e92bdfe66162d35bb3dabecc30f
 {
     public static $files = array (
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
@@ -118,6 +118,9 @@ class ComposerStaticInitb586700228cf42109676a41f517464ea
         'Newspack\\Dashboard' => __DIR__ . '/../..' . '/includes/wizards/class-dashboard.php',
         'Newspack\\Data_Events' => __DIR__ . '/../..' . '/includes/data-events/class-data-events.php',
         'Newspack\\Data_Events\\Api' => __DIR__ . '/../..' . '/includes/data-events/class-api.php',
+        'Newspack\\Data_Events\\Connectors\\GA4' => __DIR__ . '/../..' . '/includes/data-events/connectors/ga4/class-ga4.php',
+        'Newspack\\Data_Events\\Connectors\\GA4\\Event' => __DIR__ . '/../..' . '/includes/data-events/connectors/ga4/class-event.php',
+        'Newspack\\Data_Events\\Connectors\\Mailchimp' => __DIR__ . '/../..' . '/includes/data-events/connectors/class-mailchimp.php',
         'Newspack\\Data_Events\\Webhooks' => __DIR__ . '/../..' . '/includes/data-events/class-webhooks.php',
         'Newspack\\Donations' => __DIR__ . '/../..' . '/includes/class-donations.php',
         'Newspack\\Emails' => __DIR__ . '/../..' . '/includes/emails/class-emails.php',
@@ -155,6 +158,7 @@ class ComposerStaticInitb586700228cf42109676a41f517464ea
         'Newspack\\Parsely_Configuration_Manager' => __DIR__ . '/../..' . '/includes/configuration_managers/class-parsely-configuration-manager.php',
         'Newspack\\Patches' => __DIR__ . '/../..' . '/includes/class-patches.php',
         'Newspack\\Perfmatters' => __DIR__ . '/../..' . '/includes/plugins/class-perfmatters.php',
+        'Newspack\\Performance' => __DIR__ . '/../..' . '/includes/class-performance.php',
         'Newspack\\Pixel' => __DIR__ . '/../..' . '/includes/tracking/class-pixel.php',
         'Newspack\\Plugin_Manager' => __DIR__ . '/../..' . '/includes/class-plugin-manager.php',
         'Newspack\\Popups_Wizard' => __DIR__ . '/../..' . '/includes/wizards/class-popups-wizard.php',
@@ -195,9 +199,9 @@ class ComposerStaticInitb586700228cf42109676a41f517464ea
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitb586700228cf42109676a41f517464ea::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitb586700228cf42109676a41f517464ea::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitb586700228cf42109676a41f517464ea::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit146c7e92bdfe66162d35bb3dabecc30f::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit146c7e92bdfe66162d35bb3dabecc30f::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit146c7e92bdfe66162d35bb3dabecc30f::$classMap;
 
         }, null, ClassLoader::class);
     }

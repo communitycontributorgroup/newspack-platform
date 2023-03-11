@@ -47,6 +47,7 @@ use Google\Site_Kit_Dependencies\Google\Model as Google_Model;
 use Google\Site_Kit_Dependencies\Google\Service\AnalyticsData as Google_Service_AnalyticsData;
 use Google\Site_Kit_Dependencies\Google\Service\AnalyticsData\DateRange as Google_Service_AnalyticsData_DateRange;
 use Google\Site_Kit_Dependencies\Google\Service\AnalyticsData\Dimension as Google_Service_AnalyticsData_Dimension;
+use Google\Site_Kit_Dependencies\Google\Service\AnalyticsData\DimensionOrderBy as Google_Service_AnalyticsData_DimensionOrderBy;
 use Google\Site_Kit_Dependencies\Google\Service\AnalyticsData\Filter as Google_Service_AnalyticsData_Filter;
 use Google\Site_Kit_Dependencies\Google\Service\AnalyticsData\FilterExpression as Google_Service_AnalyticsData_FilterExpression;
 use Google\Site_Kit_Dependencies\Google\Service\AnalyticsData\FilterExpressionList as Google_Service_AnalyticsData_FilterExpressionList;
@@ -217,6 +218,7 @@ final class Analytics_4 extends Module
 			'GET:accounts'               => array( 'service' => 'analyticsadmin' ),
 			'GET:container-lookup'       => array( 'service' => 'tagmanager' ),
 			'GET:container-destinations' => array( 'service' => 'tagmanager' ),
+			'GET:google-tag-settings'    => array( 'service' => 'tagmanager' ),
 			'POST:create-property'       => array(
 				'service'                => 'analyticsadmin',
 				'scopes'                 => array( Analytics::EDIT_SCOPE ),
@@ -345,12 +347,20 @@ final class Analytics_4 extends Module
 				return;
 			}
 
+			$measurement_id = $web_datastream->webStreamData->measurementId; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
 			$this->get_settings()->merge(
 				array(
 					'webDataStreamID' => $web_datastream->_id,
-					'measurementID'   => $web_datastream->webStreamData->measurementId, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					'measurementID'   => $measurement_id,
 				)
 			);
+
+			if ( Feature_Flags::enabled( 'gteSupport' ) ) {
+				$container           = $this->get_tagmanager_service()->accounts_containers->lookup( array( 'destinationId' => $measurement_id ) );
+				$google_tag_settings = $this->get_google_tag_settings_for_measurement_id( $container, $measurement_id );
+				$this->get_settings()->merge( $google_tag_settings );
+			}
 		} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
 			// Suppress this exception because it might be caused by unstable GA4 API.
 		}
@@ -508,6 +518,17 @@ final class Analytics_4 extends Module
 				return $this->get_tagmanager_service()->accounts_containers_destinations->listAccountsContainersDestinations(
 					"accounts/{$data['accountID']}/containers/{$data['internalContainerID']}"
 				);
+			case 'GET:google-tag-settings':
+				if ( ! isset( $data['measurementID'] ) ) {
+					return new WP_Error(
+						'missing_required_param',
+						/* translators: %s: Missing parameter name */
+						sprintf( __( 'Request parameter is empty: %s.', 'google-site-kit' ), 'measurementID' ),
+						array( 'status' => 400 )
+					);
+				}
+
+				return $this->get_tagmanager_service()->accounts_containers->lookup( array( 'destinationId' => $data['measurementID'] ) );
 			case 'GET:conversion-events':
 				if ( ! isset( $data['propertyID'] ) ) {
 					return new WP_Error(
@@ -577,6 +598,8 @@ final class Analytics_4 extends Module
 				return self::parse_webdatastreams_batch( $response );
 			case 'GET:container-destinations':
 				return (array) $response->getDestination();
+			case 'GET:google-tag-settings':
+				return $this->get_google_tag_settings_for_measurement_id( $response, $data['measurementID'] );
 			case 'GET:conversion-events':
 				return (array) $response->getConversionEvents();
 		}
@@ -888,6 +911,61 @@ final class Analytics_4 extends Module
 	}
 
 	/**
+	 * Gets the Google Tag Settings for the given measurement ID.
+	 *
+	 * @since 1.94.0
+	 *
+	 * @param Google_Service_TagManager_Container $container Tag Manager container.
+	 * @param string                              $measurement_id Measurement ID.
+	 * @return array Google Tag Settings.
+	 */
+	protected function get_google_tag_settings_for_measurement_id( $container, $measurement_id ) {
+		return array(
+			'googleTagAccountID'   => $container->getAccountId(),
+			'googleTagContainerID' => $container->getContainerId(),
+			'googleTagID'          => $this->determine_google_tag_id_from_tag_ids( $container->getTagIds(), $measurement_id ),
+		);
+	}
+
+	/**
+	 * Determines Google Tag ID from the given Tag IDs.
+	 *
+	 * @since 1.94.0
+	 *
+	 * @param array  $tag_ids Tag IDs.
+	 * @param string $measurement_id Measurement ID.
+	 * @return string Google Tag ID.
+	 */
+	private function determine_google_tag_id_from_tag_ids( $tag_ids, $measurement_id ) {
+		// If there is only one tag id in the array, return it.
+		if ( count( $tag_ids ) === 1 ) {
+			return $tag_ids[0];
+		}
+
+		// If there are multiple tags, return the first one that starts with `GT-`.
+		foreach ( $tag_ids as $tag_id ) {
+			if ( substr( $tag_id, 0, 3 ) === 'GT-' ) { // strlen( 'GT-' ) === 3.
+				return $tag_id;
+			}
+		}
+
+		// Otherwise, return the `$measurement_id` if it is in the array.
+		if ( in_array( $measurement_id, $tag_ids, true ) ) {
+			return $measurement_id;
+		}
+
+		// Otherwise, return the first one that starts with `G-`.
+		foreach ( $tag_ids as $tag_id ) {
+			if ( substr( $tag_id, 0, 2 ) === 'G-' ) { // strlen( 'G-' ) === 2.
+				return $tag_id;
+			}
+		}
+
+		// If none of the above, return the first one.
+		return $tag_ids[0];
+	}
+
+	/**
 	 * Creates and executes a new Analytics 4 report request.
 	 *
 	 * @since 1.93.0
@@ -1096,39 +1174,36 @@ final class Analytics_4 extends Module
 	 * Parses the orderby value of the data request into an array of AnalyticsData OrderBy object instances.
 	 *
 	 * @since 1.93.0
+	 * @since 1.95.0 Updated to provide support for ordering by dimensions.
 	 *
 	 * @param array|null $orderby Data request orderby value.
 	 * @return Google_Service_AnalyticsData_OrderBy[] An array of AnalyticsData OrderBy objects.
 	 */
 	protected function parse_reporting_orderby( $orderby ) {
-		if ( empty( $orderby ) || ! is_array( $orderby ) ) {
+		if ( empty( $orderby ) || ! is_array( $orderby ) || ! wp_is_numeric_array( $orderby ) ) {
 			return array();
 		}
 
 		$results = array_map(
 			function ( $order_def ) {
-				$order_def = array_merge(
-					array(
-						'fieldName' => '',
-						'sortOrder' => '',
-					),
-					(array) $order_def
-				);
+				$order_by = new Google_Service_AnalyticsData_OrderBy();
+				$order_by->setDesc( ! empty( $order_def['desc'] ) );
 
-				if ( empty( $order_def['fieldName'] ) || empty( $order_def['sortOrder'] ) ) {
+				if ( isset( $order_def['metric'] ) && isset( $order_def['metric']['metricName'] ) ) {
+					$metric_order_by = new Google_Service_AnalyticsData_MetricOrderBy();
+					$metric_order_by->setMetricName( $order_def['metric']['metricName'] );
+					$order_by->setMetric( $metric_order_by );
+				} elseif ( isset( $order_def['dimension'] ) && isset( $order_def['dimension']['dimensionName'] ) ) {
+					$dimension_order_by = new Google_Service_AnalyticsData_DimensionOrderBy();
+					$dimension_order_by->setDimensionName( $order_def['dimension']['dimensionName'] );
+					$order_by->setDimension( $dimension_order_by );
+				} else {
 					return null;
 				}
 
-				$metric_order_by = new Google_Service_AnalyticsData_MetricOrderBy();
-				$metric_order_by->setMetricName( $order_def['fieldName'] );
-				$order_by = new Google_Service_AnalyticsData_OrderBy();
-				$order_by->setMetric( $metric_order_by );
-				$order_by->setDesc( 'DESCENDING' === $order_def['sortOrder'] );
-
 				return $order_by;
 			},
-			// When just object is passed we need to convert it to an array of objects.
-			wp_is_numeric_array( $orderby ) ? $orderby : array( $orderby )
+			$orderby
 		);
 
 		$results = array_filter( $results );

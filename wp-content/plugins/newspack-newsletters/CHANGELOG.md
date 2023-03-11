@@ -1,3 +1,73 @@
+## [1.59.2](https://github.com/Automattic/newspack-newsletters/compare/v1.59.1...v1.59.2) (2023-03-02)
+
+
+### Bug Fixes
+
+* typo causing fatal errors ([63b899d](https://github.com/Automattic/newspack-newsletters/commit/63b899d02297b1b5dec2ae1f78bc5fef98b0a7e5))
+
+## [1.59.1](https://github.com/Automattic/newspack-newsletters/compare/v1.59.0...v1.59.1) (2023-02-28)
+
+
+### Bug Fixes
+
+* Revert changes in editor ([460199f](https://github.com/Automattic/newspack-newsletters/commit/460199ff7d32adcc4a6d2f6cb361203f46850837))
+
+# [1.59.0](https://github.com/Automattic/newspack-newsletters/compare/v1.58.0...v1.59.0) (2023-02-28)
+
+
+### Bug Fixes
+
+* ensure images width are preserved ([#1074](https://github.com/Automattic/newspack-newsletters/issues/1074)) ([93882c9](https://github.com/Automattic/newspack-newsletters/commit/93882c920d3088253c4000619ec7b0d66fc98189))
+
+
+### Features
+
+* add groups support to mailchimp ([08b2740](https://github.com/Automattic/newspack-newsletters/commit/08b274086f70c068b7da89c3789e34829a5f4846))
+* **mailchimp:** support folder selection ([#1075](https://github.com/Automattic/newspack-newsletters/issues/1075)) ([9c2b283](https://github.com/Automattic/newspack-newsletters/commit/9c2b28375513b451c54fe0c78a2e152e730ccc9c))
+* **ras:** support custom contact metadata prefixes for RAS ([#1070](https://github.com/Automattic/newspack-newsletters/issues/1070)) ([2006528](https://github.com/Automattic/newspack-newsletters/commit/2006528ea1a2c36605f9cd0847ab4f2fedfbed7f))
+
+# [1.59.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.58.0...v1.59.0-alpha.1) (2023-02-17)
+
+
+### Bug Fixes
+
+* ensure images width are preserved ([#1074](https://github.com/Automattic/newspack-newsletters/issues/1074)) ([93882c9](https://github.com/Automattic/newspack-newsletters/commit/93882c920d3088253c4000619ec7b0d66fc98189))
+
+
+### Features
+
+* add groups support to mailchimp ([08b2740](https://github.com/Automattic/newspack-newsletters/commit/08b274086f70c068b7da89c3789e34829a5f4846))
+* **mailchimp:** support folder selection ([#1075](https://github.com/Automattic/newspack-newsletters/issues/1075)) ([9c2b283](https://github.com/Automattic/newspack-newsletters/commit/9c2b28375513b451c54fe0c78a2e152e730ccc9c))
+* **ras:** support custom contact metadata prefixes for RAS ([#1070](https://github.com/Automattic/newspack-newsletters/issues/1070)) ([2006528](https://github.com/Automattic/newspack-newsletters/commit/2006528ea1a2c36605f9cd0847ab4f2fedfbed7f))
+
+# [1.58.0](https://github.com/Automattic/newspack-newsletters/compare/v1.57.0...v1.58.0) (2023-02-16)
+
+
+### Bug Fixes
+
+* **activecampaign:** handle error on field creation ([#1069](https://github.com/Automattic/newspack-newsletters/issues/1069)) ([8d82cd2](https://github.com/Automattic/newspack-newsletters/commit/8d82cd2b648dab927226948acc00591c001fb79d))
+* use transient and fix typos ([d868177](https://github.com/Automattic/newspack-newsletters/commit/d868177b45c8d4a1330b77f58f63e53281fd9b5c))
+
+
+### Features
+
+* add a new log to make debugging easier ([6639f42](https://github.com/Automattic/newspack-newsletters/commit/6639f42612ee7c934116b8c07e18db2db56d88a5))
+* add caching to mailchimp ([190cf7e](https://github.com/Automattic/newspack-newsletters/commit/190cf7e28d5e62f4e8a70f827bb33f1b1c73c9de))
+
+# [1.58.0-alpha.1](https://github.com/Automattic/newspack-newsletters/compare/v1.57.0...v1.58.0-alpha.1) (2023-01-26)
+
+
+### Bug Fixes
+
+* **activecampaign:** handle error on field creation ([#1069](https://github.com/Automattic/newspack-newsletters/issues/1069)) ([8d82cd2](https://github.com/Automattic/newspack-newsletters/commit/8d82cd2b648dab927226948acc00591c001fb79d))
+* use transient and fix typos ([d868177](https://github.com/Automattic/newspack-newsletters/commit/d868177b45c8d4a1330b77f58f63e53281fd9b5c))
+
+
+### Features
+
+* add a new log to make debugging easier ([6639f42](https://github.com/Automattic/newspack-newsletters/commit/6639f42612ee7c934116b8c07e18db2db56d88a5))
+* add caching to mailchimp ([190cf7e](https://github.com/Automattic/newspack-newsletters/commit/190cf7e28d5e62f4e8a70f827bb33f1b1c73c9de))
+
 # [1.57.0](https://github.com/Automattic/newspack-newsletters/compare/v1.56.1...v1.57.0) (2023-01-25)
 
 
