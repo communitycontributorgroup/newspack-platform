@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitcd0cd91306ca46f339db5445aa4762d0
+class ComposerStaticInitdf6dc284d737148f3122300ee9cffec0
 {
     public static $prefixLengthsPsr4 = array (
         'T' => 
@@ -36,6 +36,8 @@ class ComposerStaticInitcd0cd91306ca46f339db5445aa4762d0
         'TEC\\Events\\Custom_Tables\\V1\\Feedback\\Provider' => __DIR__ . '/../..' . '/src/Events/Custom_Tables/V1/Feedback/Provider.php',
         'TEC\\Events\\Custom_Tables\\V1\\Full_Activation_Provider' => __DIR__ . '/../..' . '/src/Events/Custom_Tables/V1/Full_Activation_Provider.php',
         'TEC\\Events\\Custom_Tables\\V1\\Health_Check' => __DIR__ . '/../..' . '/src/Events/Custom_Tables/V1/Health_Check.php',
+        'TEC\\Events\\Custom_Tables\\V1\\Integrations\\ACF\\Controller' => __DIR__ . '/../..' . '/src/Events/Custom_Tables/V1/Integrations/ACF/Controller.php',
+        'TEC\\Events\\Custom_Tables\\V1\\Integrations\\ACF\\Query_Modifier' => __DIR__ . '/../..' . '/src/Events/Custom_Tables/V1/Integrations/ACF/Query_Modifier.php',
         'TEC\\Events\\Custom_Tables\\V1\\Integrations\\Provider' => __DIR__ . '/../..' . '/src/Events/Custom_Tables/V1/Integrations/Provider.php',
         'TEC\\Events\\Custom_Tables\\V1\\Migration\\Admin\\Phase_View_Renderer' => __DIR__ . '/../..' . '/src/Events/Custom_Tables/V1/Migration/Admin/Phase_View_Renderer.php',
         'TEC\\Events\\Custom_Tables\\V1\\Migration\\Admin\\Progress_Modal' => __DIR__ . '/../..' . '/src/Events/Custom_Tables/V1/Migration/Admin/Progress_Modal.php',
@@ -143,7 +145,9 @@ class ComposerStaticInitcd0cd91306ca46f339db5445aa4762d0
         'TEC\\Events\\Editor\\Full_Site\\Templates' => __DIR__ . '/../..' . '/src/Events/Editor/Full_Site/Templates.php',
         'TEC\\Events\\Installer\\Provider' => __DIR__ . '/../..' . '/src/Events/Installer/Provider.php',
         'TEC\\Events\\Integrations\\Integration_Abstract' => __DIR__ . '/../..' . '/src/Events/Integrations/Integration_Abstract.php',
+        'TEC\\Events\\Integrations\\Plugins\\Colbri_Page_Builder\\Provider' => __DIR__ . '/../..' . '/src/Events/Integrations/Plugins/Colbri_Page_Builder/Provider.php',
         'TEC\\Events\\Integrations\\Plugins\\Plugin_Integration' => __DIR__ . '/../..' . '/src/Events/Integrations/Plugins/Plugin_Integration.php',
+        'TEC\\Events\\Integrations\\Plugins\\Rank_Math\\Provider' => __DIR__ . '/../..' . '/src/Events/Integrations/Plugins/Rank_Math/Provider.php',
         'TEC\\Events\\Integrations\\Plugins\\WordPress_SEO\\Events_Schema' => __DIR__ . '/../..' . '/src/Events/Integrations/Plugins/WordPress_SEO/Events_Schema.php',
         'TEC\\Events\\Integrations\\Plugins\\WordPress_SEO\\Provider' => __DIR__ . '/../..' . '/src/Events/Integrations/Plugins/WordPress_SEO/Provider.php',
         'TEC\\Events\\Integrations\\Provider' => __DIR__ . '/../..' . '/src/Events/Integrations/Provider.php',
@@ -282,9 +286,9 @@ class ComposerStaticInitcd0cd91306ca46f339db5445aa4762d0
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitcd0cd91306ca46f339db5445aa4762d0::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitcd0cd91306ca46f339db5445aa4762d0::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitcd0cd91306ca46f339db5445aa4762d0::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitdf6dc284d737148f3122300ee9cffec0::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitdf6dc284d737148f3122300ee9cffec0::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitdf6dc284d737148f3122300ee9cffec0::$classMap;
 
         }, null, ClassLoader::class);
     }

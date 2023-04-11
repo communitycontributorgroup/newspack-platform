@@ -1,3 +1,43 @@
+# [1.66.0](https://github.com/Automattic/newspack-blocks/compare/v1.65.0...v1.66.0) (2023-04-10)
+
+
+### Features
+
+* **donate:** add body class for modal checkout ([#1411](https://github.com/Automattic/newspack-blocks/issues/1411)) ([8fc436e](https://github.com/Automattic/newspack-blocks/commit/8fc436ef92e1edf8bc37a45bdaf20757c4686ae8))
+
+# [1.66.0-alpha.1](https://github.com/Automattic/newspack-blocks/compare/v1.65.0...v1.66.0-alpha.1) (2023-03-31)
+
+
+### Features
+
+* **donate:** add body class for modal checkout ([#1411](https://github.com/Automattic/newspack-blocks/issues/1411)) ([8fc436e](https://github.com/Automattic/newspack-blocks/commit/8fc436ef92e1edf8bc37a45bdaf20757c4686ae8))
+
+# [1.65.0](https://github.com/Automattic/newspack-blocks/compare/v1.64.0...v1.65.0) (2023-03-27)
+
+
+### Bug Fixes
+
+* **modal-checkout:** z-index when used w/ Campaigns ([ef30e95](https://github.com/Automattic/newspack-blocks/commit/ef30e95885bbe950196583c54fb8f16d66423ee0))
+* prevent enqueuing non-existent stylesheet ([916eaea](https://github.com/Automattic/newspack-blocks/commit/916eaea046670caf176b5022f23e2820132a4e26))
+
+
+### Features
+
+* update links to documentation to help.newspack [#1390](https://github.com/Automattic/newspack-blocks/issues/1390) ([f6e01b9](https://github.com/Automattic/newspack-blocks/commit/f6e01b9dc73fc9a61afaf8b873f36d13f4c79e45))
+
+# [1.65.0-alpha.1](https://github.com/Automattic/newspack-blocks/compare/v1.64.0...v1.65.0-alpha.1) (2023-03-16)
+
+
+### Bug Fixes
+
+* **modal-checkout:** z-index when used w/ Campaigns ([ef30e95](https://github.com/Automattic/newspack-blocks/commit/ef30e95885bbe950196583c54fb8f16d66423ee0))
+* prevent enqueuing non-existent stylesheet ([916eaea](https://github.com/Automattic/newspack-blocks/commit/916eaea046670caf176b5022f23e2820132a4e26))
+
+
+### Features
+
+* update links to documentation to help.newspack [#1390](https://github.com/Automattic/newspack-blocks/issues/1390) ([f6e01b9](https://github.com/Automattic/newspack-blocks/commit/f6e01b9dc73fc9a61afaf8b873f36d13f4c79e45))
+
 # [1.64.0](https://github.com/Automattic/newspack-blocks/compare/v1.63.0...v1.64.0) (2023-03-14)
 
 
