@@ -288,8 +288,8 @@ $image_blocks = apply_filters( 'radio_station_show_images_blocks', $image_blocks
 $image_block_order = array( 'icons', 'social', 'patreon', 'player' );
 $image_block_order = apply_filters( 'radio_station_show_image_block_order', $image_block_order, $post_id );
 if ( RADIO_STATION_DEBUG ) {
-	echo '<span style="display:none;">Image Block Order: ' . print_r( $image_block_order, true ) . '</span>';
-	echo '<!-- Image Blocks: ' . print_r( $image_blocks, true ) . ' -->';
+	echo '<span style="display:none;">Image Block Order: ' . esc_html( print_r( $image_block_order, true ) ) . '</span>';
+	// echo '<span style="display:none;">Image Blocks: ' . esc_html( print_r( $image_blocks, true ) ) . '</span>';
 }
 
 // --- combine image blocks to show images block ---
@@ -464,7 +464,7 @@ if ( $show_phone || $hosts || $producers || $genres || $languages ) {
 	$meta_block_order = apply_filters( 'radio_station_show_meta_block_order', $meta_block_order, $post_id );
 	if ( RADIO_STATION_DEBUG ) {
 		echo '<span style="display:none;">Meta Block Order: ' . esc_html( print_r( $meta_block_order, true ) ) . '</span>' . "\n";
-		echo '<!-- Meta Blocks: ' . esc_html( print_r( $meta_blocks, true ) ) . ' -->' . "\n";
+		// echo '<span style="display:none;">Meta Blocks: ' . esc_html( print_r( $meta_blocks, true ) ) . '</span>' . "\n";
 	}
 
 	// --- combine meta blocks to show meta block ---
@@ -1040,7 +1040,8 @@ if ( 'tabbed' == $section_layout ) {
 	$js .= "  }";
 	$js .= " }";
 	$js .= "}, 500);";
-	wp_add_inline_script( 'radio-station-page', $js );
+	// 2.5.0: use radio_station_add_inline_script
+	radio_station_add_inline_script( 'radio-station-page', $js );
 }
 
 // 2.3.3.9: turn off doing template flag

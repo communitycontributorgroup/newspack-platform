@@ -105,8 +105,9 @@ function radio_station_get_show_shifts( $check_conflicts = true, $split = true, 
 
 	// --- debug point for show data ---
 	if ( RADIO_STATION_DEBUG ) {
+		echo '<span style="display:none;">';
+		echo 'Show Data: ' . esc_html( print_r( $records, true ) ) . '</span>';
 		$data = 'Show Data: ' . print_r( $records, true ) . PHP_EOL;
-		echo '<span style="display:none;">' . $data . '</span>';
 		radio_station_debug( $data );
 	}
 
@@ -158,7 +159,8 @@ function radio_station_get_all_overrides( $start_date = false, $end_date = false
 			$linked_id = get_post_meta( $override_id, 'linked_show_id', true );
 			if ( $linked_id ) {
 				$override_data[$i]['linked_show'] = get_post( $linked_id );
-				$linked_fields = get_post_meta( $override['ID'], 'linked_show_fields', true );
+				// 2.5.2: fix to use override property not array key
+				$linked_fields = get_post_meta( $override_id, 'linked_show_fields', true );
 				if ( !isset( $linked_fields['show_title'] ) || !$linked_fields['show_title'] ) {
 					$data['title'] = $linked_show->post_title;
 				}
@@ -289,7 +291,7 @@ function radio_station_get_current_schedule( $time = false, $weekstart = false )
 
 		// --- debug point ---
 		if ( RADIO_STATION_DEBUG ) {
-			$debug = "Show Shifts: " . print_r( $show_shifts, true ) . PHP_EOL;
+			$debug = "Show Shifts: " . esc_html( print_r( $show_shifts, true ) ) . PHP_EOL;
 			radio_station_debug( $debug );
 		}
 

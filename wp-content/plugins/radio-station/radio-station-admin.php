@@ -62,7 +62,8 @@ function radio_station_enqueue_admin_scripts() {
 
 	if ( RADIO_STATION_DEBUG ) {
 		$js = "radio_admin.debug = true;";
-		wp_add_inline_script( 'radio-station-admin', $js );
+		// 2.5.0: use radio_station_add_inline_script
+		radio_station_add_inline_script( 'radio-station-admin', $js );
 	}
 
 	// --- enqueue admin styles ---
@@ -337,7 +338,8 @@ function radio_station_taxonomy_submenu_fix() {
 		// --- enqueue script inline ---
 		// 2.3.0: enqueue instead of echoing
 		if ( '' != $js ) {
-			wp_add_inline_script( 'radio-station-admin', $js );
+			// 2.5.0: use radio_station_add_inline_script
+			radio_station_add_inline_script( 'radio-station-admin', $js );
 		}
 	}
 }
@@ -695,7 +697,7 @@ function radio_station_get_upgrade_notice() {
 	$pluginslug = RADIO_STATION_SLUG;
 	$pluginupdates = get_site_transient( 'update_plugins' );
 	if ( RADIO_STATION_DEBUG ) {
-		echo '<span style="display:none;">Update Transient: ' . print_r( $pluginupdates, true ) . '</span>';
+		echo '<span style="display:none;">Update Transient: ' . esc_html( print_r( $pluginupdates, true ) ) . '</span>';
 	}
 
 	// 2.4.0.9: check for object for PHP8
@@ -726,7 +728,7 @@ function radio_station_get_upgrade_notice() {
 		}
 	}
 	if ( RADIO_STATION_DEBUG && $notice ) {
-		echo '<span style="display:none;">Update Notice: ' . print_r( $notice, true ) . '</span>';
+		echo '<span style="display:none;">Update Notice: ' . esc_html( print_r( $notice, true ) ) . '</span>';
 	}
 	return $notice;
 }
