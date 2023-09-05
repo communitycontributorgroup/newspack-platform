@@ -85,6 +85,7 @@ final class Newspack {
 		include_once NEWSPACK_ABSPATH . 'includes/data-events/class-popups.php';
 		include_once NEWSPACK_ABSPATH . 'includes/data-events/connectors/ga4/class-ga4.php';
 		include_once NEWSPACK_ABSPATH . 'includes/data-events/connectors/class-mailchimp.php';
+		include_once NEWSPACK_ABSPATH . 'includes/data-events/class-woo-user-registration.php';
 		include_once NEWSPACK_ABSPATH . 'includes/class-api.php';
 		include_once NEWSPACK_ABSPATH . 'includes/class-profile.php';
 		include_once NEWSPACK_ABSPATH . 'includes/analytics/class-analytics.php';
@@ -334,6 +335,9 @@ final class Newspack {
 			return;
 		}
 		delete_transient( NEWSPACK_ACTIVATION_TRANSIENT );
+		if ( \get_option( NEWSPACK_SETUP_COMPLETE, false ) ) {
+			return;
+		}
 		wp_safe_redirect( admin_url( 'admin.php?page=newspack-setup-wizard' ) );
 		exit;
 	}
